@@ -1,0 +1,35 @@
+{
+  "name": "dist-seat",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.test.js --timeout 0",
+    "test:funcional": "mocha tests/checkSites.test.js --timeout 0",
+    "test:visual": "mocha tests/visualChecks.test.js --timeout 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "canvas": "^3.2.0",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^5.2.5",
+    "node-fetch": "^3.3.2",
+    "p-limit": "^7.1.1",
+    "ping": "^0.4.4",
+    "puppeteer": "^24.22.2",
+    "resemblejs": "^5.0.0",
+    "selenium-webdriver": "^4.35.0",
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "chai": "^6.0.1",
+    "chromedriver": "^140.0.3",
+    "cross-env": "^10.0.0",
+    "dotenv": "^17.2.2",
+    "geckodriver": "^6.0.1",
+    "mocha": "^11.7.2",
+    "mochawesome": "^7.1.4"
+  }
+}
