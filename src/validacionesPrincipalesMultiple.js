@@ -31,7 +31,7 @@ async function validacionesPrincipalesMultiple() {
     setupLoggingToFile(RUTAS.script_DIR, 'ejecucion_logs.txt');
 
     // Obtener distribuidores
-    const driver1 = await driverSelenium(false);
+    const driver1 = await driverSelenium(true);
     const pathJson = await getDistribuidoraSelenium(driver1, nameMarca);
     await driver1.quit();
     const distribuidoras = JSON.parse(fs.readFileSync(path.join(pathJson), "utf-8"));
@@ -166,7 +166,7 @@ async function validacionesPrincipalesMultiple() {
             //Validar Redireccionamiento del HOME www con vs sin 
             let driver3;
             try {
-                driver3 = await driverSelenium(false);
+                driver3 = await driverSelenium(true);
                 const homeValidated = await validateHomeRedirectSelenium(driver3, urlD);
                 resultDistGeneral.homeRedireccion = homeValidated
                     ? `Ambas versiones redirigen al mismo destino.`
@@ -294,7 +294,7 @@ async function validateSinglePage(url, itemDist) {
     try {
         // Cada tarea crea y destruye su propio navegador para evitar conflictos.
         // Se usa 'false' para modo headless (más rápido).
-        driver = await driverSelenium(false);
+        driver = await driverSelenium(true);
 
         console.log("-".repeat(50));
         //console.log(`🔎 📊 Comparación de Distribuidoras ${nameMarca} #${index + 1} de ${distribuidoras.length} `);

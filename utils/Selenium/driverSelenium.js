@@ -16,9 +16,10 @@ async function driverSelenium(headless = true, windowSize = { width: 1920, heigh
         }
 
         const driver = await new Builder()
-            .forBrowser("firefox")
-            //.forBrowser("chrome")
-            .setFirefoxOptions(options)
+            //.forBrowser("firefox")
+            //.setFirefoxOptions(options)
+            .forBrowser("chrome")
+            .setChromeOptions(options)
             .build();
         // === ✅ Establecer tamaño de la ventana ===
         await driver.manage().window().setRect({
@@ -26,7 +27,7 @@ async function driverSelenium(headless = true, windowSize = { width: 1920, heigh
             height: windowSize.height
         });
 
-        console.log(`WebDriver para Firefox creado en modo ${headless ? 'headless' : 'visible'}.`);
+        console.log(`WebDriver creado en modo ${headless ? 'headless' : 'visible'}.`);
         console.log(`Ventana configurada a ${windowSize.width}x${windowSize.height}.`);
 
         return driver;

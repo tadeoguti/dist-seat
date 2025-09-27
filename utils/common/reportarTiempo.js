@@ -3,7 +3,7 @@
  * @param {number} startProcessTime - Timestamp de inicio del proceso (Date.now()).
  * @param {number} totalItems - El número total de elementos procesados.
  */
-function reportarTiempo(startProcessTime, totalItems, totalSecciones) {
+function reportarTiempo(startProcessTime, totalItems) {
     if (startProcessTime === undefined || totalItems === undefined) {
         console.error("❌ Error: Se requiere un tiempo de inicio y el número total de elementos.");
         return;
@@ -20,7 +20,6 @@ function reportarTiempo(startProcessTime, totalItems, totalSecciones) {
     
     console.log(`\n--- Reporte de Tiempo ---`);
     console.log(`Total de Distribuidoras: ${totalItems}`);
-    console.log(`Total de Secciones por Distribuidora: ${totalSecciones}`);
     console.log(`⏱️ Tiempo total de ejecución: ${horas} h, ${minutos} min, ${segundos} s`);
 
     // Cálculo del tiempo promedio

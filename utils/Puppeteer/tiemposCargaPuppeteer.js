@@ -39,6 +39,4 @@ async function tiemposCargaPuppeteer(page) {
     tiempoTotal: { ms: tiempoTotalms, s: parseFloat(tiempoTotals) }
   };
 }
-
 module.exports = tiemposCargaPuppeteer;
-

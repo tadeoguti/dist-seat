@@ -17,6 +17,7 @@ const reportarTiempo = require("../utils/common/reportarTiempo");
 const delay = require("../utils/common/delay");
 const setupLoggingToFile = require("../utils/files/setupLoggingToFile");
 
+//Este proceso tarda 16 minutos por distribuidora 
 
 async function validacionesPrincipales() {
     const startProcessTime = Date.now();
