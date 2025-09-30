@@ -12,10 +12,11 @@ const password = process.env.LOGIN_PASS;
  *
  * @param {import('puppeteer').Page} page - Instancia de Puppeteer ya inicializada.
  * @param {string} nameMarca - Nombre de la marca a consultar (ej. 'Volkswagen').
+ * @param {string} outputDir - Ruta de la carpeta donde guardar el json del listado de Distribuidoras
  * @returns {Promise<string>} Ruta del archivo JSON generado.
  */
 
-async function getDistribuidoraPuppeteer(page, nameMarca) {
+async function getDistribuidoraPuppeteer(page, nameMarca, outputDir) {
     try {
         
         console.log(`Iniciando extracción de distribuidores para la marca: ${nameMarca}`);
@@ -33,11 +34,6 @@ async function getDistribuidoraPuppeteer(page, nameMarca) {
         const urlLogin = 'https://reportes.netcar.mx/';
         //const urlDirectorio = 'https://reportes.netcar.mx/Admin/Default.aspx';
         const urlDeDestino = 'https://reportes.netcar.mx/Admin/Reportes/repDistribuidores.aspx';
-
-        const outputDir = path.resolve(__dirname, '../../dist');
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir);
-        }
 
         // 1. Ir al login
         await page.goto(urlLogin, { waitUntil: 'networkidle2' });

@@ -5,7 +5,9 @@
   "scripts": {
     "test": "mocha tests/**/*.test.js --timeout 0",
     "test:funcional": "mocha tests/checkSites.test.js --timeout 0",
-    "test:visual": "mocha tests/visualChecks.test.js --timeout 0"
+    "test:visual": "mocha tests/visualChecks.test.js --timeout 0",
+    "start": "node src/seat-LotesSitemap-Puppeter.js",
+    "validar:distribuidoras": "node src/seat-LotesSitemap-Puppeter.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +17,7 @@
     "canvas": "^3.2.0",
     "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.2.5",
+    "inquirer": "^8.2.7",
     "node-fetch": "^3.3.2",
     "p-limit": "^7.1.1",
     "ping": "^0.4.4",

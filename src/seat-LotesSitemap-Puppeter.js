@@ -15,6 +15,7 @@ const validarDOMPuppeteer = require("../utils/Puppeteer/validarDOMPuppeteer");
 const getDistribuidoraPuppeteer = require("../utils/Puppeteer/getDistribuidoraPuppeteer");
 const validarHomeRedirectPuppeteer = require("../utils/Puppeteer/validarHomeRedirectPuppeteer");
 const getPageStatusPuppeteer = require("../utils/Puppeteer/getPageStatusPuppeteer");
+const seleccionarDistribuidoras = require("../utils/common/seleccionarDistribuidoras");
 
 //Proceso para hacerlo por lotes en los links de cada Distribuidora Puppeter
 const startProcessTime = Date.now();
@@ -22,6 +23,7 @@ let distribuidoras = [];
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 let browserDist, browser, homeBrowser;
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 async function validacionesPrincipales() {
     try {
         const nameMarca = "Seat";
@@ -70,7 +72,8 @@ async function validacionesPrincipales() {
         // Crear carpetas
         const RUTAS = await crearCarpetasResultados(
             `${nameMarca}-ValidacionesPrincipales`,
-            ["REPORT_DIR"]
+            ["REPORT_DIR"],
+            PROJECT_ROOT
         );
         //Guardado de los logs
         setupLoggingToFile(RUTAS.script_DIR, 'ejecucion_logs.txt');
@@ -82,14 +85,21 @@ async function validacionesPrincipales() {
             width: VIEWPORT_WIDTH,
             height: VIEWPORT_HEIGHT
         });
-        const pathJson = await getDistribuidoraPuppeteer(pageDist, nameMarca);
+        const pathJson = await getDistribuidoraPuppeteer(pageDist, nameMarca, RUTAS.list_Distri);
         await browserDist.close();
         distribuidoras = JSON.parse(fs.readFileSync(path.join(pathJson), "utf-8"));
-        // 🔧 Solo prueba con las primeras 5 distribuidoras
-        distribuidoras = distribuidoras.slice(0, 2);
         const dirPathJson = path.dirname(pathJson);
         cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
+        // 🔧 Solo prueba con las primeras 5 distribuidoras
+        //distribuidoras = distribuidoras.slice(0, 2);
+        console.log("=".repeat(60));
+        //console.log(`\nSelecciona las distribuidoras a Revisar: \n Presiona: "Espacio" para seleccionar | "a" para seleccionar todas | "i" para invertir la sección | "Enter" para continuar el proceso con la sección elegida`)
+        distribuidoras = await seleccionarDistribuidoras(distribuidoras);
 
+        if (distribuidoras.length === 0) {
+            console.log("🛑 No se seleccionó ninguna distribuidora. Proceso cancelado.");
+            return;
+        }
         // Procesar cada distribuidora
         let index = 0;
         for (const dist of distribuidoras) {
@@ -324,7 +334,7 @@ async function validacionesPrincipales() {
                             nameDist: itemDist.nameDist,
                             urlSitio: url,
                             statusURL: "",
-                            statusMensaje: "",
+                            statusMensaje: null,
                             TiempoCargaDOM: null,
                             TiempoCargaTotal: null,
                             Imagen_rota: "",
@@ -362,8 +372,17 @@ async function validacionesPrincipales() {
                                 resultSitioDist.statusURL = response.status();
                                 resultSitioDist.statusMensaje = response.statusText();
 
+                                if (response.status() >= 200 && response.status() < 400) {
+                                    console.log(`\n✅ [${response.status()}] OK: ${url}. Continuando con las validaciones DOM y tiempos de carga.`);
+                                    resultSitioDist.statusMensaje = `OK. Continuando con las validaciones DOM y tiempos de carga.`;
+                                }
+
                                 // Salta el resto de validaciones si no fue 200/300, etc.
-                                if (response.status() >= 400 || response.status() === 0) return resultSitioDist;
+                                if (response.status() >= 400 || response.status() === 0){
+                                    console.error(`\n❌ [${response.status()}] Error: ${response.statusText()} en ${url}.`);
+                                    resultSitioDist.statusMensaje =`Error: ${response.statusText()}.`;
+                                    return resultSitioDist;
+                                } 
                             } else {
                                 // Esto solo ocurre en raras ocasiones si la conexión se establece pero no devuelve encabezados
                                 resultSitioDist.statusURL = 0;
@@ -419,6 +438,7 @@ async function validacionesPrincipales() {
             }
             resultsDist.push(...resultsBatch);
             resultsGeneral.push(resultDistGeneral);
+            index++;
         }
         //console.table(resultsGeneral);
         //console.table(resultsDist);

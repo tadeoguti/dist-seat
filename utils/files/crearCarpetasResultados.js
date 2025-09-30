@@ -10,7 +10,9 @@ const path = require("path");
  * - Evidencias específicas por proyecto (ej. `Evidencias-LandingCupra`)
  * - Reportes generados
  * - Capturas del sitio base
- * @param {string} nombreProyecto 
+ * @param {string} nombreProyecto - Nombre del proyecto para crear la carpeta
+ * @param {array} carpetasOpcionales - Carpetas Opcionales que se crearán 
+ * @param {array} rutaBase - ruta del proyecto 
  * @returns {Promise<Object>} - Objeto con las rutas de las carpetas creadas.
  * @property {string} list_Distri - Carpeta raíz para los json con los datos  de las distribuidoras.
  * @property {string} Results_DIR - Carpeta principal de resultados.
@@ -20,11 +22,14 @@ const path = require("path");
  * @property {string} baseDir - Carpeta para capturas del sitio base.
  */
 
-async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = []) {
+async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = [], rutaBase) {
     try {
-        const __dirname = path.resolve();
-        //const list_Distri = path.resolve(__dirname, "./dist");
-        const Results_DIR = path.join(__dirname, "Resultados");
+        if (!rutaBase) {
+            throw new Error("Se requiere 'baseDir' para crear carpetas de resultados.");
+        }
+        //const __dirname = path.resolve();
+        const list_Distri = path.resolve(rutaBase, "dist");
+        const Results_DIR = path.join(rutaBase, "Resultados");
         const script_DIR = path.join(Results_DIR, nombreProyecto);
         const DIST_DIR = path.join(script_DIR, `Evidencias-${nombreProyecto}`);
         const baseDir = path.join(DIST_DIR, "Capturas_SitioBase");
@@ -35,6 +40,7 @@ async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = []) 
         // 🔹 Siempre se crean estas dos
         await folders(Results_DIR);
         await folders(script_DIR);
+        await folders(list_Distri);
 
         // 🔹 Crear solo las carpetas opcionales solicitadas
         for (const key of carpetasOpcionales) {
@@ -45,6 +51,7 @@ async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = []) 
 
         // 🔹 Siempre retorna las rutas de las carpertas creada.
         return {
+            list_Distri,
             Results_DIR,
             script_DIR,
             REPORT_DIR,
