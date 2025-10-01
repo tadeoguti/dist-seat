@@ -32,4 +32,4 @@ services:
       - ./.env:/usr/src/app/.env
     cap_add:
       - NET_RAW
-    command: ["node", "src/movil-LotesSitemap-Puppeter.js"]
+    command: ["node", "src/seat-RevisionMobile-Puppeteer.js"]

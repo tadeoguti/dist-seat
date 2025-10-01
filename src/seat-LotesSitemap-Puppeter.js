@@ -31,7 +31,7 @@ async function validacionesPrincipales() {
         let resultsDist = [];
         let linksSitemapDist = {};
         const pathSiteMap = "/XMLsitemap.ashx";
-        const MAX_PARALLEL_URLS = 10; // Máximo de URLs procesadas simultáneamente por distr.
+        const MAX_PARALLEL_URLS = 10; // Máximo de URLs procesadas simultáneamente por distribuidora.
         /*
         Tiempos: 
             Lotes de 10:
@@ -66,8 +66,6 @@ async function validacionesPrincipales() {
                 ⏱️ Tiempo total de ejecución: 0 h, 16 min, 21 s
                 ⏱️ Tiempo promedio por Distribuidora: 0 h, 8 min, 11 s
                 ------------------------------------------------------------
-
-
         */
         // Crear carpetas
         const RUTAS = await crearCarpetasResultados(
@@ -77,7 +75,6 @@ async function validacionesPrincipales() {
         );
         //Guardado de los logs
         setupLoggingToFile(RUTAS.script_DIR, 'ejecucion_logs.txt');
-
         // Obtener distribuidores
         browserDist = await driverPuppeteer(true);
         const pageDist = await browserDist.newPage();
@@ -95,7 +92,6 @@ async function validacionesPrincipales() {
         console.log("=".repeat(60));
         //console.log(`\nSelecciona las distribuidoras a Revisar: \n Presiona: "Espacio" para seleccionar | "a" para seleccionar todas | "i" para invertir la sección | "Enter" para continuar el proceso con la sección elegida`)
         distribuidoras = await seleccionarDistribuidoras(distribuidoras);
-
         if (distribuidoras.length === 0) {
             console.log("🛑 No se seleccionó ninguna distribuidora. Proceso cancelado.");
             return;
@@ -135,7 +131,6 @@ async function validacionesPrincipales() {
             };
             console.log("=".repeat(50));
             console.log(`🔎 Distribuidor #${index + 1} de ${distribuidoras.length}: ${itemDist.nameDist}`);
-
             let urlD = itemDist.urlDist;
             // Quitar "www." si está al inicio
             urlD = urlD.replace(/^www\./i, '');
@@ -161,7 +156,6 @@ async function validacionesPrincipales() {
                 console.log(`Tiempo Ping: ${resultadoIP.tiempoPing} ms`);
                 console.log(`Status HTTP: ${resultadoIP.statusHttp}`);
                 console.log(`Estado final: ${resultadoIP.estadoFinal}`);
-
                 resultDistGeneral.ipResuelta = resultadoIP.ipResuelta;
                 resultDistGeneral.coincideServidor = resultadoIP.coincideServidor;
                 resultDistGeneral.respondePing = resultadoIP.respondePing;
@@ -175,18 +169,15 @@ async function validacionesPrincipales() {
                     index++;
                     continue;// pasar a la siguiente distribuidora
                 }
-
             } catch (error) {
                 console.error(`❌ Error al validar la IP del sitio: ${itemDist.urlDist}`);
                 console.error(`Detalle del error: ${error.message || error}`);
-
                 // Guardar información parcial en el objeto para el reporte
                 resultDistGeneral.mensajeError = `Error validando IP: ${error.message || error}`;
                 resultDistGeneral.ipResuelta = null;
                 resultDistGeneral.coincideServidor = false;
                 resultDistGeneral.respondePing = false;
                 resultDistGeneral.tiempoPing = null;
-
                 resultsGeneral.push(resultDistGeneral);
                 index++;
                 continue; // pasar a la siguiente distribuidora
@@ -212,7 +203,6 @@ async function validacionesPrincipales() {
             } catch (error) {
                 console.error(`❌ Error al validar el Certificado SSL del sitio: ${itemDist.urlDist}`);
                 console.error(`Detalle del error: ${error.message || error}`);
-
                 // Guardar información parcial en el objeto para el reporte
                 resultDistGeneral.mensajeError = `Error validando el Certificado SSL: ${error.message || error}`;
                 resultsGeneral.push(resultDistGeneral);
@@ -234,7 +224,6 @@ async function validacionesPrincipales() {
                 resultDistGeneral.homeDestinoSinWWW = homeValidated.finalUrlWithoutWWW;
                 resultDistGeneral.homeDestinoConWWW = homeValidated.finalUrlWithWWW;
                 resultDistGeneral.homeError = homeValidated.error;
-
             } catch (error) {
                 console.error(`❌ Error al validar la Redirección Home del sitio: ${itemDist.urlDist}`);
                 console.error(`Detalle del error: ${error}`);
@@ -260,13 +249,12 @@ async function validacionesPrincipales() {
                 linksSitemapDist = await extractSitemapLinks(linkDistSitemap);
                 resultDistGeneral.urlsDuplicadas = linksSitemapDist.duplicatedUrls;
                 resultDistGeneral.certificadoSSL_Sitemap = linksSitemapDist.sslStatus;
-
                 if (!linksSitemapDist.uniqueUrls || linksSitemapDist.uniqueUrls.length === 0) {
                     console.log(`❌ El sitemap de ${itemDist.nameDist} no contiene enlaces`);
                     resultDistGeneral.mensajeError = `Error: No tiene enlaces el sitemap de la Distribuidora -> ${itemDist.nameDist} `;
                     resultsGeneral.push(resultDistGeneral);
                     index++;
-                    continue; // saltar a la siguiente distribuidora
+                    continue;
                 }
             } catch (error) {
                 console.error(`❌ Error al validar el sitemap del sitio: ${itemDist.urlDist}`);
@@ -278,7 +266,7 @@ async function validacionesPrincipales() {
                 continue;
             }
             // === 5. Validar URLs del sitemap en lotes paralelos ===
-            // Filtrar quitando las que tengan `/Cupra/` en el path
+            // Filtrar quitando las que tengan `/Cupra/` y los modelos Cupra en el path
             console.log("Excluyendo las Landings Cupra...");
             const urlsFiltradas = linksSitemapDist.uniqueUrls.filter(u => {
                 const { pathname } = new URL(u);
@@ -288,13 +276,10 @@ async function validacionesPrincipales() {
                 const contienePalabra = LandingCupra.some(word =>
                     pathname.toUpperCase().includes(word.toUpperCase())
                 );
-
                 return !contienePalabra; // nos quedamos solo con los que NO matchean
             });
             console.log(`✅ Sitemap contiene ${urlsFiltradas.length} enlaces`);
             const resultsBatch = [];
-
-            // Crear hasta MAX_PARALLEL_URLS drivers
             const pages = []; // Ahora manejamos un array de 'pages'
             try {
                 browser = await driverPuppeteer(true);
@@ -311,24 +296,19 @@ async function validacionesPrincipales() {
                 const totalLotes = Math.ceil(urlsFiltradas.length / MAX_PARALLEL_URLS);
                 console.log(`\n📊 Total de URLs: ${urlsFiltradas.length}`);
                 console.log(`📦 Se dividirán en ${totalLotes} lote(s), máximo ${MAX_PARALLEL_URLS} por lote`);
-
                 for (let i = 0; i < urlsFiltradas.length; i += MAX_PARALLEL_URLS) {
                     const batch = urlsFiltradas.slice(i, i + MAX_PARALLEL_URLS);
                     const pageBatch = pages.slice(0, batch.length); // Usamos las páginas pre-creadas
-
                     // 🔢 Número de lote actual
                     const numeroLoteActual = Math.floor(i / MAX_PARALLEL_URLS) + 1;
-
                     console.log(`\n🚀 PROCESANDO LOTE ${numeroLoteActual} de ${totalLotes}...`);
                     console.log(`🔗 URLs en este lote (${batch.length}):`);
                     batch.forEach((url, idx) => {
                         console.log(`   [${idx + 1}] ${url}`);
                     });
-
                     const promises = batch.map(async (url, idx) => {
                         // Asignamos una 'page' del lote a la URL
                         const page = pageBatch[idx];
-
                         const resultSitioDist = {
                             idDist: itemDist.idDist,
                             nameDist: itemDist.nameDist,
@@ -346,37 +326,30 @@ async function validacionesPrincipales() {
                             Enlace_externo_invalido: "",
                             Error_general: "",
                         };
-
                         try {
                             // 1. Capturar Errores (debe ser la nueva función para Puppeteer)
                             await capturarErroresConsolaPuppeteer(page);
-
                             // 2. Navegar a la URL 
                             const response = await page.goto(url, {
                                 waitUntil: 'load',
                                 timeout: 60000
                             });
-
                             // 3. Recuperar los errores de Consola después de la navegación
                             const erroresConsola = page._capturedConsoleMessages;
-
                             // 4. Procesar los resultados de consola
                             if (erroresConsola.length > 0) {
                                 resultSitioDist.Error_consola = erroresConsola
                                     .map(err => `[${err.type}] ${err.text}`)
                                     .join(' | ');
                             }
-
                             // 5. Obtener el Estatus HTTP 
                             if (response) {
                                 resultSitioDist.statusURL = response.status();
                                 resultSitioDist.statusMensaje = response.statusText();
-
                                 if (response.status() >= 200 && response.status() < 400) {
                                     console.log(`\n✅ [${response.status()}] OK: ${url}. Continuando con las validaciones DOM y tiempos de carga.`);
                                     resultSitioDist.statusMensaje = `OK. Continuando con las validaciones DOM y tiempos de carga.`;
                                 }
-
                                 // Salta el resto de validaciones si no fue 200/300, etc.
                                 if (response.status() >= 400 || response.status() === 0){
                                     console.error(`\n❌ [${response.status()}] Error: ${response.statusText()} en ${url}.`);
@@ -389,19 +362,16 @@ async function validacionesPrincipales() {
                                 resultSitioDist.statusMensaje = "Conexión incompleta/Sin respuesta de encabezado";
                                 return resultSitioDist;
                             }
-
                             // 6. Medir tiempos de carga y validar DOM
                             const tiemposCarga = await tiemposCargaPuppeteer(page);
                             resultSitioDist.TiempoCargaDOM = `${tiemposCarga.tiempoDOM.ms} ms (${tiemposCarga.tiempoDOM.s} s)`;
                             resultSitioDist.TiempoCargaTotal = `${tiemposCarga.tiempoTotal.ms} ms (${tiemposCarga.tiempoTotal.s} s)`;
-
                             const datosDOM = await validarDOMPuppeteer(page);
                             datosDOM.errores.forEach(err => {
                                 if (resultSitioDist.hasOwnProperty(err.tipo)) {
                                     resultSitioDist[err.tipo] = err.detalle || "";
                                 }
                             });
-
                         } catch (error) {
                             console.log(`Error Revisando el sitio: ${url}, ${error}`);
                             console.log("-".repeat(50));
@@ -463,9 +433,6 @@ async function validacionesPrincipales() {
         cleanfiles(RUTAS.REPORT_DIR, `Reporte_`, `.xlsx`, 5);
 
         console.log("-".repeat(50));
-
-
-
     } catch (error) {
         console.error(`❌ Error en la ejecución del script: ${error}`);
     } finally {
