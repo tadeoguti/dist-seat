@@ -22,20 +22,20 @@ const path = require("path");
  * @property {string} baseDir - Carpeta para capturas del sitio base.
  */
 
-async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = [], rutaBase) {
+async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = [], rutaProyecto) {
     try {
-        if (!rutaBase) {
+        if (!rutaProyecto) {
             throw new Error("Se requiere 'baseDir' para crear carpetas de resultados.");
         }
         //const __dirname = path.resolve();
-        const list_Distri = path.resolve(rutaBase, "dist");
-        const Results_DIR = path.join(rutaBase, "Resultados");
+        const list_Distri = path.resolve(rutaProyecto, "dist");
+        const Results_DIR = path.join(rutaProyecto, "Resultados");
         const script_DIR = path.join(Results_DIR, nombreProyecto);
         const DIST_DIR = path.join(script_DIR, `Evidencias-${nombreProyecto}`);
         const baseDir = path.join(DIST_DIR, "Capturas_SitioBase");
         const REPORT_DIR = path.join(script_DIR, `Reporte-${nombreProyecto}`);
 
-        const todasCarpetas = {Results_DIR, script_DIR, REPORT_DIR, DIST_DIR, baseDir};
+        const todasCarpetas = {list_Distri, Results_DIR, script_DIR, REPORT_DIR, DIST_DIR, baseDir};
 
         // 🔹 Siempre se crean estas dos
         await folders(Results_DIR);

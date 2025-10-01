@@ -1,0 +1,35 @@
+services:
+  seat:
+    image: seat-validator:latest  
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seat-validator
+    environment:
+      - NODE_ENV=production
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    volumes:
+      - ./Resultados:/usr/src/app/Resultados
+      - ./src:/usr/src/app/src
+      - ./utils:/usr/src/app/utils
+      - ./.env:/usr/src/app/.env
+    cap_add:
+      - NET_RAW
+    command: ["node", "src/seat-LotesSitemap-Puppeter.js"]
+
+  movil:
+    image: seat-validator:latest
+    container_name: movil-validator
+    environment:
+      - NODE_ENV=production
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    volumes:
+      - ./Resultados:/usr/src/app/Resultados
+      - ./src:/usr/src/app/src
+      - ./utils:/usr/src/app/utils
+      - ./.env:/usr/src/app/.env
+    cap_add:
+      - NET_RAW
+    command: ["node", "src/movil-LotesSitemap-Puppeter.js"]

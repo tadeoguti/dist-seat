@@ -66,7 +66,7 @@ async function getDistribuidoraPuppeteer(page, nameMarca, outputDir) {
         // Esperar carga de la tabla
         //await delay(5000); // Espera explícita para renderizado
 
-        await page.waitForSelector('#ContentPlaceHolder1_gvDatos', { timeout: 10000 });
+        await page.waitForSelector('#ContentPlaceHolder1_gvDatos', { timeout: 60000 });
 
         // Extraer filas de la tabla
         const datos = await page.evaluate((dominios_No_Deseados, nameMarca) => {

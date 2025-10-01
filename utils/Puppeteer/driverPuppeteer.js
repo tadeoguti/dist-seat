@@ -14,11 +14,11 @@ async function driverPuppeteer(headless = true, windowSize = { width: 1920, heig
         // === ✅ Crear la instancia del Browser ===
         browser = await puppeteer.launch({
             headless: headless, // Controla el modo headless
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
             args: [
-                // Configura el tamaño inicial del viewport/ventana
+                "--no-sandbox", 
+                "--disable-setuid-sandbox",
                 `--window-size=${windowSize.width},${windowSize.height}` 
-                // A diferencia de Selenium, Puppeteer no necesita un 'driver', 
-                // el objeto 'browser' es el punto de partida.
             ]
         });
 
