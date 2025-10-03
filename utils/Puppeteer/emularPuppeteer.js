@@ -4,22 +4,29 @@ const fs = require("fs");
 const path = require("path");
 
 /**
- * Inicia Puppeteer emulando un dispositivo.
+ * Inicia Puppeteer emulando un dispositivo y creando varias pestañas (pages).
  * @param {string} nombreDispositivo - Nombre exacto del dispositivo (ej: "iPhone X", "Pixel 5", "iPad Pro")
  * @param {boolean} headless - true = invisible, false = visible
- * @returns {Promise<{ browser: puppeteer.Browser, page: puppeteer.Page, deviceData?: object }>}
+ * @param {number} maxPages - número máximo de pestañas (ej: 10)
+ * @returns {Promise<{ browser: puppeteer.Browser, pages: puppeteer.Page[], deviceData?: object }>}
  */
-async function emularPuppeteer(nombreDispositivo,headless = true) {
+async function emularPuppeteer(nombreDispositivo,headless = true, maxPages = 1) {
     const browser = await puppeteer.launch({
         headless: headless, // true si no quieres ver la ventana - false para hacer visible la emulación
         defaultViewport: null
     });
-    const page = await browser.newPage();
-
     const device = KnownDevices[nombreDispositivo];
+    const pages= [];
+    
+    for (let i =0; i < maxPages; i++){
+        const page = await browser.newPage();
+        if(device){
+            await page.emulate(device);
+        }
+        pages.push(page);
+    }
 
     if (device) {
-        await page.emulate(device);
         console.log(`📱 Dispositivo emulado: ${device.name}`);
         console.log(`   Ancho: ${device.viewport.width}px`);
         console.log(`   Alto: ${device.viewport.height}px`);
@@ -27,7 +34,6 @@ async function emularPuppeteer(nombreDispositivo,headless = true) {
     } else {
         console.warn(`⚠️ Dispositivo "${nombreDispositivo}" no encontrado. Se abre viewport por defecto.`);
     }
-
     return { 
         browser, 
         page,

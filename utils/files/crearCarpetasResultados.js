@@ -1,25 +1,15 @@
 const folders = require("./folders");
 const path = require("path");
 /**
- * 
- * Crea una estructura de directorios necesaria para almacenar resultados y evidencias.
+ * Crea la estructura de carpetas estándar para almacenar resultados, reportes y evidencias
+ * de un proyecto de automatización o testing.
  *
- * Esta función crea carpetas anidadas para organizar:
- * - Datos generales de las distribuidoras (`dist`)
- * - Resultados del análisis (`Resultados`)
- * - Evidencias específicas por proyecto (ej. `Evidencias-LandingCupra`)
- * - Reportes generados
- * - Capturas del sitio base
- * @param {string} nombreProyecto - Nombre del proyecto para crear la carpeta
- * @param {array} carpetasOpcionales - Carpetas Opcionales que se crearán 
- * @param {array} rutaBase - ruta del proyecto 
- * @returns {Promise<Object>} - Objeto con las rutas de las carpetas creadas.
- * @property {string} list_Distri - Carpeta raíz para los json con los datos  de las distribuidoras.
- * @property {string} Results_DIR - Carpeta principal de resultados.
- * @property {string} script_DIR - Carpeta específica del script en ejecución.
- * @property {string} DIST_DIR - Carpeta específica de evidencias del proyecto/Script.
- * @property {string} REPORT_DIR - Carpeta para reportes del proyecto/Script.
- * @property {string} baseDir - Carpeta para capturas del sitio base.
+ * @async
+ * @param {string} nombreProyecto - El nombre único del proyecto (usado como subcarpeta dentro de 'Resultados').
+ * @param {string[]} [carpetasOpcionales=[]] - Un array de nombres clave de las carpetas opcionales a crear.
+ * @param {string} rutaProyecto - La ruta base donde se creará la carpeta principal ('dist' y 'Resultados').
+ * @returns {Promise<Object<string, string>|undefined>} Un objeto con las rutas absolutas de todas las carpetas clave creadas, o `undefined` si ocurre un error.
+ * @throws {Error} Si 'rutaProyecto' no se proporciona.
  */
 
 async function crearCarpetasResultados(nombreProyecto, carpetasOpcionales = [], rutaProyecto) {

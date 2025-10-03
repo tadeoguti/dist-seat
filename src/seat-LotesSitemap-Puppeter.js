@@ -84,7 +84,10 @@ async function validacionesPrincipales() {
         });
         const pathJson = await getDistribuidoraPuppeteer(pageDist, nameMarca, RUTAS.list_Distri);
         await browserDist.close();
-        distribuidoras = JSON.parse(fs.readFileSync(path.join(pathJson), "utf-8"));
+        distribuidoras = JSON.parse(
+            fs.readFileSync(path.join(pathJson), 
+            "utf-8"
+        ));
         const dirPathJson = path.dirname(pathJson);
         cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
         // 🔧 Solo prueba con las primeras 5 distribuidoras
@@ -331,7 +334,7 @@ async function validacionesPrincipales() {
                             await capturarErroresConsolaPuppeteer(page);
                             // 2. Navegar a la URL 
                             const response = await page.goto(url, {
-                                waitUntil: 'load',
+                                waitUntil: 'networkidle2',
                                 timeout: 60000
                             });
                             // 3. Recuperar los errores de Consola después de la navegación
@@ -393,13 +396,11 @@ async function validacionesPrincipales() {
                     const results = await Promise.all(promises);
                     resultsBatch.push(...results);
                 }
-            } catch {
+            } catch (error) {
                 console.error(`Error procesando URLs de ${itemDist.nameDist}:`, error);
             } finally {
-                // === 3. Cerrar el ÚNICO Browser (reemplaza a driver.quit() por driver.close()) ===
                 if (browser) {
                     try {
-                        // El 'browser.close()' cerrará automáticamente todas las 'pages' que creó.
                         await browser.close();
                     } catch (err) {
                         console.error("Error al cerrar el navegador Puppeteer:", err);

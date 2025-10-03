@@ -36,7 +36,9 @@ async function getDistribuidoraPuppeteer(page, nameMarca, outputDir) {
         const urlDeDestino = 'https://reportes.netcar.mx/Admin/Reportes/repDistribuidores.aspx';
 
         // 1. Ir al login
-        await page.goto(urlLogin, { waitUntil: 'networkidle2' });
+        await page.goto(urlLogin, { 
+            timeout: 60000,
+            waitUntil: 'networkidle2' });
 
         // 2. Iniciar sesión
         await page.type('#txtUsuario', user);
