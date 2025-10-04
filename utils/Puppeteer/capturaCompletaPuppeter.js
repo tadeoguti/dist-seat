@@ -17,8 +17,8 @@ async function capturaCompletaPuppeter(page, rutaArchivo) {
 
         //console.log(`Ancho del Dispositivo: ${viewportWidth}px`);
         //console.log(`Alto del Dispositivo: ${viewportHeight}px`);
-        try { await page.waitForSelector("header", {timeout:3000}); } catch{}
-        try { await page.waitForSelector(".crm", {timeout:3000}); } catch{}
+        try { await page.waitForSelector("header", { timeout: 3000 }); } catch { }
+        try { await page.waitForSelector(".crm", { timeout: 3000 }); } catch { }
         // Ocultar elementos
         await ocultarElementos(page);
         await delay(1000);
@@ -36,25 +36,24 @@ async function capturaCompletaPuppeter(page, rutaArchivo) {
                 }, 200);
             });
         });
-        
+
         await page.evaluate(async () => {
             const el = document.querySelector("#parallax-world-of-ugg");
-            if(el){
+            if (el) {
                 el.scrollIntoView(); // desplaza la sección al viewport
             }
         });
         const el2 = await page.$(".parallax-two");
-        if(el2){
+        if (el2) {
             await el2.scrollIntoViewIfNeeded();
         }
-
         // Esperar imágenes pendientes
         await delay(2000);
 
         // Medir altura total del body
         const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
         console.log(`📏 Altura total de la página: ${bodyHeight}px`);
-        
+
         const MAX_SAFE_HEIGHT = 16000; // límite seguro de Chromium
 
         // Si el body es muy alto, captura por bloques
@@ -92,8 +91,8 @@ async function capturarPorBloques(page, rutaArchivo, viewportWidth, viewportHeig
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
     while (scroll < bodyHeight) {
-        try { await page.waitForSelector("header", {timeout:3000}); } catch{}
-        try { await page.waitForSelector(".crm", {timeout:3000}); } catch{}
+        try { await page.waitForSelector("header", { timeout: 3000 }); } catch { }
+        try { await page.waitForSelector(".crm", { timeout: 3000 }); } catch { }
         await ocultarElementos(page);
         await delay(500);
         const clipHeight = Math.min(viewportHeight, bodyHeight - scroll);
@@ -129,40 +128,37 @@ async function capturarPorBloques(page, rutaArchivo, viewportWidth, viewportHeig
 /**
  * Oculta header, footer, .crm, etc.
  */
-async function  ocultarElementos(page) {
+async function ocultarElementos(page) {
     await page.evaluate(() => {
-        const header = document.querySelector("header");
-        const footer = document.querySelector("footer");
-        const crm = document.querySelector(".crm");
-        const menuInteriorClass = document.querySelector(".menuInterior");
-        const menuInteriorID = document.querySelector("#MenuInterior");
 
-        //Ocultar Elementos 
-        if (header) header.style.display = "none";
-        if (footer) footer.style.display = "none";
-        if (crm) crm.style.display = "none";
-        if (menuInteriorClass) menuInteriorClass.style.display = "none";
-        if (menuInteriorID) menuInteriorID.style.display = "none";
+        const hideSelectors = [
+            "header", "footer", ".crm", "#MenuInterior",
+            ".hcupra", ".cookie-policy-container",
+            ".ChatXS_Icon", ".legalesauc", ".container-fluid", ".menuInterior"
+        ];
+        hideSelectors.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => {
+                el.style.setProperty("display", "none", "important");
+            })
+        });
+        // Reset body y html
+        document.body.style.margin = "0";
+        document.body.style.padding = "0";
+        document.body.style.overflow = "visible";
 
-        //Remover elementos 
-        //if (header) header.remove();
-        //if (crm) crm.remove();
-        //if (menuInteriorClass) menuInteriorClass.remove();
-        //if (menuInteriorID) menuInteriorID.remove();
+        document.documentElement.style.margin = "0";
+        document.documentElement.style.padding = "0";
+        document.documentElement.style.overflow = "visible";
 
-        // 🔑 Ajustar body y html para que no quede espacio vacío
-        document.body.style.marginTop = "0px";
-        document.body.style.paddingTop = "0px";
-        document.documentElement.style.marginTop = "0px";
-        document.documentElement.style.paddingTop = "0px";
-
-        // También revisar si el primer hijo (main, section) tiene margen
+        // Reset de main o section
         const main = document.querySelector("main, section");
         if (main) {
-            main.style.marginTop = "0px";
-            main.style.paddingTop = "0px";
+            main.style.marginTop = "0";
+            main.style.paddingTop = "0";
+            main.style.marginBottom = "0";
+            main.style.paddingBottom = "0";
         }
-    });   
+    });
 }
 
 module.exports = capturaCompletaPuppeter;

@@ -25,7 +25,7 @@ const folders = require("../utils/files/folders.js");
 */
 const startProcessTime = Date.now();
 let distribuidoras = [];
-let browserDist, browserBase, browser, homeBrowser;
+let browserDist, browserBase = [], browser, homeBrowser;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const nameMarca = "Seat";
 async function main() {
@@ -39,7 +39,7 @@ async function main() {
         const sitioBase = "https://demo1.gosev4.netcar.com.mx";
         const pathSiteMap = "/XMLsitemap.ashx"
         const sitemapBase = sitioBase + pathSiteMap;
-        const MAX_PARALLEL_URLS = 10; // Máximo de URLs procesadas simultáneamente por 
+        const MAX_PARALLEL_URLS = 3; // Máximo de URLs procesadas simultáneamente por 
         let resultsGeneral = [], resultsDist = [], resultsBase = [];
         const RUTAS = await crearEstructuraCarpetas(
             `${nameMarca}-${dispositivoEmulado}`,
@@ -61,7 +61,7 @@ async function main() {
         cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
         console.log("=".repeat(60));
         //console.log(`\nSelecciona las distribuidoras a Revisar: \n Presiona: "Espacio" para seleccionar | "a" para seleccionar todas | "i" para invertir la sección | "Enter" para continuar el proceso con la sección elegida`)
-        distribuidoras = await seleccionarDistribuidoras(distribuidoras);
+        //distribuidoras = await seleccionarDistribuidoras(distribuidoras);
         if (distribuidoras.length === 0) {
             console.log("🛑 No se seleccionó ninguna distribuidora. Proceso cancelado.");
             return;
@@ -108,8 +108,8 @@ async function main() {
                         const pageBase = pageBatchBase[idx];
                         let nameImgBase = getSafeFileNameFromUrl(url);
                         let rutaImgBase = path.join(RUTAS.baseDir, `${nameImgBase}.png`);
-                        console.log(`Captura del sitio #${idx + 1} de ${urlsFiltradasBase.length}`);
-                        console.log(`Entrando al sitio: ${url}`);
+                        //console.log(`Captura del sitio #${idx + 1} de ${urlsFiltradasBase.length}`);
+                        //console.log(`Entrando al sitio: ${url}`);
                         let newUrlBase = getValidUrl(url);
                         if (newUrlBase) {
                             await pageBase.goto(newUrlBase, {
@@ -120,9 +120,7 @@ async function main() {
                             await capturaCompletaPuppeter(pageBase, rutaImgBase);
                         }
                     });
-                    const resultsBase = await Promise.all(promisesBase);
-                    resultsBatchBase.push(...resultsBase);
-                    console.log(resultsBatchBase);
+                    await Promise.all(promisesBase);
                 }
             } catch (error) {
                 console.error(`Error procesando URLs Base de ${newUrlBase}:`, error);

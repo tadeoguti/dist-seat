@@ -36,7 +36,7 @@ async function emularPuppeteer(nombreDispositivo,headless = true, maxPages = 1) 
     }
     return { 
         browser, 
-        page,
+        pages,
         deviceData: device 
             ? {
                 name:device.name,
