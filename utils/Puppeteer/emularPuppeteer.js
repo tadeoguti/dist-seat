@@ -10,17 +10,19 @@ const path = require("path");
  * @param {number} maxPages - número máximo de pestañas (ej: 10)
  * @returns {Promise<{ browser: puppeteer.Browser, pages: puppeteer.Page[], deviceData?: object }>}
  */
-async function emularPuppeteer(nombreDispositivo,headless = true, maxPages = 1) {
+async function emularPuppeteer(nombreDispositivo, headless = true, maxPages = 1) {
     const browser = await puppeteer.launch({
-        headless: headless, // true si no quieres ver la ventana - false para hacer visible la emulación
-        defaultViewport: null
+        headless: headless,        // true = sin ventana, false = visible
+        defaultViewport: null,     // para usar el viewport completo de la pantalla
+        protocolTimeout: 120000    // (120s = 2 minutos)
     });
     const device = KnownDevices[nombreDispositivo];
-    const pages= [];
-    
-    for (let i =0; i < maxPages; i++){
+    const pages = [];
+
+    for (let i = 0; i < maxPages; i++) {
         const page = await browser.newPage();
-        if(device){
+        page.setDefaultTimeout(120000);
+        if (device) {
             await page.emulate(device);
         }
         pages.push(page);
@@ -34,14 +36,14 @@ async function emularPuppeteer(nombreDispositivo,headless = true, maxPages = 1) 
     } else {
         console.warn(`⚠️ Dispositivo "${nombreDispositivo}" no encontrado. Se abre viewport por defecto.`);
     }
-    return { 
-        browser, 
+    return {
+        browser,
         pages,
-        deviceData: device 
+        deviceData: device
             ? {
-                name:device.name,
-                ancho:device.viewport.width,
-                alto:device.viewport.height
+                name: device.name,
+                ancho: device.viewport.width,
+                alto: device.viewport.height
             }
             : null
     };
@@ -67,4 +69,4 @@ async function listarDispositivos() {
     console.log(`\n✅ Archivo creado en: ${filePath}`);
 }
 
-module.exports = {emularPuppeteer ,listarDispositivos } ;
+module.exports = { emularPuppeteer, listarDispositivos };

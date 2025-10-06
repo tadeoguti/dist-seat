@@ -362,8 +362,8 @@ async function main() {
                             try {
                                 if (newUrlValida) {
                                     await page.goto(newUrlValida, {
-                                        timeout: 60000,
-                                        waitUntil: 'networkidle2' // espera a que la mayoría de recursos terminen de cargar
+                                        waitUntil: 'networkidle2', // espera a que la mayoría de recursos terminen de cargar
+                                        timeout: 120000,
                                     });
                                     const tiemposCarga = await tiemposCargaPuppeteer(page);
                                     resultSitioDist.TiempoCargaDOM = `${tiemposCarga.tiempoDOM.ms} ms (${tiemposCarga.tiempoDOM.s} s)`;
