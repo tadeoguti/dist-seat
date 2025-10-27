@@ -25,9 +25,10 @@ const folders = require("../utils/files/folders.js");
 */
 const startProcessTime = Date.now();
 let distribuidoras = [];
-let browserDist, browserBase = [], browser, homeBrowser;
+let browserDist, browserBase, browserSitio;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const nameMarca = "Seat";
+const numBreak = 5;
 async function main() {
     console.log(`Iniciando el proceso de Validación sitios ${nameMarca} Con Dispositivo Emulado...`);
     // 🔹 Ver todos los dispositivos que soporta Puppeteer
@@ -39,7 +40,7 @@ async function main() {
         const sitioBase = "https://demo1.gosev4.netcar.com.mx";
         const pathSiteMap = "/XMLsitemap.ashx"
         const sitemapBase = sitioBase + pathSiteMap;
-        const MAX_PARALLEL_URLS = 3; // Máximo de URLs procesadas simultáneamente por 
+        const MAX_PARALLEL_URLS = 1;//3; // Máximo de URLs procesadas simultáneamente por 
         let resultsGeneral = [], resultsDist = [], resultsBase = [];
         const RUTAS = await crearEstructuraCarpetas(
             `${nameMarca}-${dispositivoEmulado}`,
@@ -61,7 +62,7 @@ async function main() {
         cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
         console.log("=".repeat(60));
         //console.log(`\nSelecciona las distribuidoras a Revisar: \n Presiona: "Espacio" para seleccionar | "a" para seleccionar todas | "i" para invertir la sección | "Enter" para continuar el proceso con la sección elegida`)
-        //distribuidoras = await seleccionarDistribuidoras(distribuidoras);
+        distribuidoras = await seleccionarDistribuidoras(distribuidoras);
         if (distribuidoras.length === 0) {
             console.log("🛑 No se seleccionó ninguna distribuidora. Proceso cancelado.");
             return;
@@ -85,54 +86,44 @@ async function main() {
                 return !contienePalabra; // nos quedamos solo con los que NO matchean
             });
             console.log(`✅ Sitemap contiene ${urlsFiltradasBase.length} enlaces`);
-            const resultsBatchBase = [];
+            let newUrlBase;
             try {
                 //1. Creando el browser (Navegador) con las pages (Pestañas) hasta el valor de MAX_PARALLEL_URLS
                 browserBase = await emularPuppeteer(dispositivoEmulado, false, MAX_PARALLEL_URLS);
-                // === 2. Procesamiento de Lotes (Lógica sin cambios) ===
-                const totalLotesBase = Math.ceil(urlsFiltradasBase.length / MAX_PARALLEL_URLS);
+
                 console.log(`\n📊 Total de URLs: ${urlsFiltradasBase.length}`);
-                console.log(`📦 Se dividirán en ${totalLotesBase} lote(s), máximo ${MAX_PARALLEL_URLS} por lote`);
-                for (let i = 0; urlsFiltradasBase.length; i += MAX_PARALLEL_URLS) {
-                    const batchBase = urlsFiltradasBase.slice(i, i + MAX_PARALLEL_URLS);
-                    const pageBatchBase = browserBase.pages.slice(0, batchBase.length);
-                    // 🔢 Número de lote actual
-                    const numeroLoteBaseActual = Math.floor(i / MAX_PARALLEL_URLS) + 1;
-                    console.log(`\n🚀 PROCESANDO LOTE ${numeroLoteBaseActual} de ${totalLotesBase}...`);
-                    console.log(`🔗 URLs en este lote (${batchBase.length}):`);
-                    batchBase.forEach((url, idx) => {
-                        console.log(`   [${idx + 1}] ${url}`);
-                    });
-                    const promisesBase = batchBase.map(async (url, idx) => {
-                        // Asignamos una 'page' del lote a la URL
-                        const pageBase = pageBatchBase[idx];
-                        let nameImgBase = getSafeFileNameFromUrl(url);
-                        let rutaImgBase = path.join(RUTAS.baseDir, `${nameImgBase}.png`);
-                        //console.log(`Captura del sitio #${idx + 1} de ${urlsFiltradasBase.length}`);
-                        //console.log(`Entrando al sitio: ${url}`);
-                        let newUrlBase = getValidUrl(url);
-                        if (newUrlBase) {
-                            await pageBase.goto(newUrlBase, {
-                                timeout: 60000,
-                                waitUntil: 'networkidle2'
-                            });
-                            await tiemposCargaPuppeteer(pageBase);
-                            await capturaCompletaPuppeter(pageBase, rutaImgBase);
-                        }
-                    });
-                    await Promise.all(promisesBase);
+
+                let indexBase = 0;
+                for (const urlBase of linksSitemapBase.uniqueUrls) {
+                    let nameImgBase = getSafeFileNameFromUrl(urlBase);
+                    let rutaImgBase = path.join(RUTAS.baseDir, `${nameImgBase}.png`);
+                    console.log("-".repeat(50));
+                    console.log(`Captura del sitio #${indexBase + 1} de ${linksSitemapBase.uniqueUrls.length}`);
+                    console.log(`Entrando al sitio: ${urlBase}`);
+                    newUrlBase = getValidUrl(urlBase);
+                    if (newUrlBase) {
+                        await browserBase.pages[0].goto(newUrlBase, {
+                            timeout: 120000,
+                            waitUntil: 'networkidle2' // espera a que la mayoría de recursos terminen de cargar
+                        });
+                        //await tiemposCargaPuppeteer(page);
+                        //console.log(tiemposCarga);
+                        //await takeBodyScreenshot(page,rutaImgBase);
+                        await capturaCompletaPuppeter(browserBase.pages[0], rutaImgBase);
+                    }
+                    indexBase++;
+                    //if (indexBase >= numBreak) break;
                 }
             } catch (error) {
                 console.error(`Error procesando URLs Base de ${newUrlBase}:`, error);
             } finally {
                 if (browserBase) {
                     try {
-                        await browserBase.close();
+                        await browserBase.browser.close();
                     } catch (e) {
-                        console.warn(`Advertencia: Falló el cierre del browserBase para ${itemDist.urlDist}.`);
+                        console.warn(`Advertencia: Falló el cierre del browserBase:  ${e}.`);
                     }
                 }
-
             }
             let index = 0;
             for (const itemDist of distribuidoras) {
@@ -142,31 +133,12 @@ async function main() {
                     urlDist: "",
                     sitemap: '',
                     urlsDuplicadas: [],
-                    homeRedireccion: '',
-                    homeUrlSinWWW: null,
-                    homeUrlConWWW: null,
-                    homeDestinoSinWWW: null,
-                    homeDestinoConWWW: null,
-                    homeError: null,
-                    ipResuelta: null,
-                    coincideServidor: false,
-                    respondePing: false,
-                    tiempoPing: null,
-                    statusHttp: null,
-                    estadoFinal: null,
                     certificadoSSL_Sitemap: "",
-                    sslStatus: "",
-                    sslCn: "",
-                    sslSan: [],
-                    sslValidForHost: false,
-                    sslValidFrom: "",
-                    sslValidTo: "",
-                    sslIssuer: "",
+
                     mensajeError: '',
                 };
-
                 console.log("=".repeat(50));
-                console.log(`🔎📊 Distribuidor #${index + 1} de ${distribuidoras.length}: ${itemDist.nameDist}`);
+                console.log(`🔎 📊 Comparación de sitios Cupra #${index + 1} de ${distribuidoras.length} `);
                 let urlD = itemDist.urlDist;
                 // Quitar "www." si está al inicio
                 urlD = urlD.replace(/^www\./i, '');
@@ -175,236 +147,103 @@ async function main() {
                     urlD = 'https://' + urlD;
                 }
                 resultDistGeneral.urlDist = urlD;
-                // === 1. Validación IP ===
-                try {
-                    let dominio = urlD;
-                    //Para la validación de IP hay que quitar el https://
-                    if (dominio.startsWith('http://') || dominio.startsWith('https://')) {
-                        dominio = dominio.replace(/^https?:\/\//, '');
-                    }
-                    // Validación de IP antes de procesar el sitio
-                    const resultadoIP = await validarIP(dominio); // función que compara la IP del sitio con tu IP registrada
-                    console.log(`🔹 Distribuidora: ${itemDist.nameDist}`);
-                    console.log(`Dominio: ${dominio}`);
-                    console.log(`DNS-IP Resuelta: ${resultadoIP.ipResuelta}`);
-                    console.log(`Coincide con servidor registrado: ${resultadoIP.coincideServidor}`);
-                    console.log(`Respuesta Ping: ${resultadoIP.respondePing}`);
-                    console.log(`Tiempo Ping: ${resultadoIP.tiempoPing} ms`);
-                    console.log(`Status HTTP: ${resultadoIP.statusHttp}`);
-                    console.log(`Estado final: ${resultadoIP.estadoFinal}`);
-                    resultDistGeneral.ipResuelta = resultadoIP.ipResuelta;
-                    resultDistGeneral.coincideServidor = resultadoIP.coincideServidor;
-                    resultDistGeneral.respondePing = resultadoIP.respondePing;
-                    resultDistGeneral.tiempoPing = resultadoIP.tiempoPing;
-                    resultDistGeneral.statusHttp = resultadoIP.statusHttp;
-                    resultDistGeneral.estadoFinal = resultadoIP.estadoFinal;
-                    if (!resultadoIP.coincideServidor) {
-                        console.warn(`❌ La IP de ${dominio} no coincide con la IP registrada. Se omiten las validaciones principales.`);
-                        resultDistGeneral.mensajeError = "IP no válida / No coincide con servidor registrado.";
-                        resultsGeneral.push(resultDistGeneral);
-                        index++;
-                        continue;// pasar a la siguiente distribuidora
-                    }
-                } catch (error) {
-                    console.error(`❌ Error al validar la IP del sitio: ${itemDist.urlDist}`);
-                    console.error(`Detalle del error: ${error.message || error}`);
-                    // Guardar información parcial en el objeto para el reporte
-                    resultDistGeneral.mensajeError = `Error validando IP: ${error.message || error}`;
-                    resultDistGeneral.ipResuelta = null;
-                    resultDistGeneral.coincideServidor = false;
-                    resultDistGeneral.respondePing = false;
-                    resultDistGeneral.tiempoPing = null;
-                    resultsGeneral.push(resultDistGeneral);
+
+                console.log(`Validando Sitemap del sitio web: ${urlD}`);
+                //Obtener los links del sitemap de la distribuidora actual. 
+                let linkDistSitemap = urlD + pathSiteMap;
+                resultDistGeneral.sitemap = linkDistSitemap;
+                const linksSitemapDist = await extractSitemapLinks(linkDistSitemap);
+                resultDistGeneral.urlsDuplicadas = linksSitemapDist.duplicatedUrls;
+                resultDistGeneral.certificadoSSL_Sitemap = linksSitemapDist.sslStatus;
+                // Validar que hay links unicos en el sitemap
+                if (!linksSitemapDist.uniqueUrls || linksSitemapDist.uniqueUrls.length === 0) {
+                    console.log(`❌ El sitemap de ${itemDist.nameDist} no contiene enlaces`);
+                    resultDistGeneral.mensajeError = `Error: No tiene enlaces el sitemap de la Distribuidora -> ${itemDist.nameDist} `;
+                    resultsGeneralCupra.push(resultDistGeneral);
                     index++;
-                    continue; // pasar a la siguiente distribuidora
-                }
-                // === 2. SSL ===
-                try {
-                    const infoCertSSL = await validarCertificadoSSL(urlD);
-                    console.log(`🔐 Certificado de: ${urlD}`);
-                    console.log(`- Estado: ${infoCertSSL.sslStatus}`);
-                    console.log(`- CN: ${infoCertSSL.cn}`);
-                    console.log(`- SAN: ${infoCertSSL.san.join(", ")}`);
-                    console.log(`- Válido para host: ${infoCertSSL.validForHost ? "✅ Sí" : "❌ No"}`);
-                    console.log(`- Desde: ${infoCertSSL.validFrom}`);
-                    console.log(`- Hasta: ${infoCertSSL.validTo}`);
-                    console.log(`- Emitido por: ${infoCertSSL.issuer}`);
-                    resultDistGeneral.sslStatus = infoCertSSL.sslStatus;
-                    resultDistGeneral.sslCn = infoCertSSL.cn;
-                    resultDistGeneral.sslSan = infoCertSSL.san.join("\n");
-                    resultDistGeneral.sslValidForHost = infoCertSSL.validForHost ? "✅ Sí" : "❌ No";
-                    resultDistGeneral.sslValidFrom = infoCertSSL.validFrom;
-                    resultDistGeneral.sslValidTo = infoCertSSL.validTo;
-                    resultDistGeneral.sslIssuer = infoCertSSL.issuer;
-                } catch (error) {
-                    console.error(`❌ Error al validar el Certificado SSL del sitio: ${itemDist.urlDist}`);
-                    console.error(`Detalle del error: ${error.message || error}`);
-                    // Guardar información parcial en el objeto para el reporte
-                    resultDistGeneral.mensajeError = `Error validando el Certificado SSL: ${error.message || error}`;
-                    resultsGeneral.push(resultDistGeneral);
-                }
-                // === 3. Redirección Home ===
-                try {
-                    homeBrowser = await driverPuppeteer(true);
-                    const pageHome = await homeBrowser.newPage();
-                    const homeValidated = await validarHomeRedirectPuppeteer(pageHome, urlD);
-                    resultDistGeneral.homeRedireccion = homeValidated
-                        ? `Ambas versiones redirigen al mismo destino.`
-                        : `Las versiones con y sin "www." NO redirigen igual.`;
-                    resultDistGeneral.homeUrlSinWWW = homeValidated.urlWithoutWWW;
-                    resultDistGeneral.homeUrlConWWW = homeValidated.urlWithWWW;
-                    resultDistGeneral.homeDestinoSinWWW = homeValidated.finalUrlWithoutWWW;
-                    resultDistGeneral.homeDestinoConWWW = homeValidated.finalUrlWithWWW;
-                    resultDistGeneral.homeError = homeValidated.error;
-                } catch (error) {
-                    console.error(`❌ Error al validar la Redirección Home del sitio: ${itemDist.urlDist}`);
-                    console.error(`Detalle del error: ${error}`);
-                    // Guardar información parcial en el objeto para el reporte
-                    resultDistGeneral.mensajeError = `Error validando la Redirección Home: ${error.message || error}`;
-                    resultsGeneral.push(resultDistGeneral);
-                } finally {
-                    // 4. Cerrar el NAVEGADOR TEMPORAL inmediatamente
-                    if (homeBrowser) {
-                        try {
-                            await homeBrowser.close(); // 🚀 Cierre inmediato del browser de Home
-                        } catch (e) {
-                            console.warn(`Advertencia: Falló el cierre del homeBrowser para ${itemDist.urlDist}.`);
+                    continue; // saltar a la siguiente distribuidora
+                } else {
+                    console.log("Excluyendo las Landings Cupra...");
+                    const urlsFiltradas = linksSitemapDist.uniqueUrls.filter(u => {
+                        const { pathname } = new URL(u);
+                        const LandingCupra = ["/Cupra/", "/NUEVO-FORMENTOR/25", "/NUEVO-LEON/25", "/NUEVO-TERRAMAR/25", "/NUEVO-FORMENTOR-PHEV/25", "/ATECA/24"];
+                        //return !pathname.includes("Cupra");
+                        // devuelve true si contiene alguno de los textos
+                        const contienePalabra = LandingCupra.some(word =>
+                            pathname.toUpperCase().includes(word.toUpperCase())
+                        );
+                        return !contienePalabra; // nos quedamos solo con los que NO matchean
+                    });
+                    console.log(`✅ Sitemap contiene ${urlsFiltradas.length} enlaces`);
+                    let currentDir = path.join(RUTAS.DIST_DIR, `${itemDist.idDist} - ${itemDist.nameDist}`);
+                    let screenshotDir = path.join(currentDir, "Capturas_Pantalla");
+                    let diffDir = path.join(currentDir, "Diferencias_Visuales");
+                    await folders(currentDir);
+                    await folders(screenshotDir);
+                    await folders(diffDir);
+
+                    let i = 0;
+                    for (const url of urlsFiltradas) {
+                        console.log("-".repeat(50));
+                        console.log(`🔎 📊 Comparación de Distribuidoras Cupra #${index + 1} de ${distribuidoras.length} `);
+                        console.log(`🌐 Validando enlace #${i + 1} de ${linksSitemapDist.uniqueUrls.length}: \n${url}`);
+                        let nameImg = getSafeFileNameFromUrl(url);
+                        let newUrlValida = getValidUrl(url);
+                        let rutaImg = path.join(screenshotDir, `${nameImg}.png`);
+                        let rutaBase = path.join(RUTAS.baseDir, `${nameImg}.png`);
+                        const filePathDiff = path.join(diffDir, `${nameImg}.png`);
+                        const parsedUrl = new URL(url);
+                        browserSitio = await emularPuppeteer(dispositivoEmulado, false, MAX_PARALLEL_URLS);
+                        let resultSitioDist = {
+                            idDist: itemDist.idDist,
+                            nameDist: itemDist.nameDist,
+                            urlSitioBase: sitioBase + parsedUrl.pathname + parsedUrl.search + parsedUrl.hash,
+                            urlSitio: newUrlValida,
+                            similitudVisual: "",
+                            mensajeVisual: "",
+                            evidenciaDiff: "",
+                            Device: "",
+                            dimensionesImg: "",
+                            TiempoCargaDOM: null,
+                            TiempoCargaTotal: null,
+                            Error_general: "",
                         }
-                    }
-                }
-                // === 4. Sitemap ===
-                try {
-                    console.log(`Validando Sitemap del sitio web: ${urlD}`);
-                    //Obtener los links del sitemap. 
-                    let linkDistSitemap = urlD + pathSiteMap;
-                    resultDistGeneral.sitemap = linkDistSitemap;
-                    linksSitemapDist = await extractSitemapLinks(linkDistSitemap);
-                    resultDistGeneral.urlsDuplicadas = linksSitemapDist.duplicatedUrls;
-                    resultDistGeneral.certificadoSSL_Sitemap = linksSitemapDist.sslStatus;
-                    if (!linksSitemapDist.uniqueUrls || linksSitemapDist.uniqueUrls.length === 0) {
-                        console.log(`❌ El sitemap de ${itemDist.nameDist} no contiene enlaces`);
-                        resultDistGeneral.mensajeError = `Error: No tiene enlaces el sitemap de la Distribuidora -> ${itemDist.nameDist} `;
-                        resultsGeneral.push(resultDistGeneral);
-                        index++;
-                        continue;
-                    }
-                } catch (error) {
-                    console.error(`❌ Error al validar el sitemap del sitio: ${itemDist.urlDist}`);
-                    console.error(`Detalle del error: ${error.message || error}`);
-                    // Guardar información parcial en el objeto para el reporte
-                    resultDistGeneral.mensajeError = `Error validando el sitemap: ${error.message || error}`;
-                    resultsGeneral.push(resultDistGeneral);
-                    index++;
-                    continue;
-                }
-                // === 5. Validar URLs del sitemap en lotes paralelos ===
-                // Filtrar quitando las que tengan `/Cupra/` y los modelos Cupra en el path
-                console.log("Excluyendo las Landings Cupra...");
-                const urlsFiltradas = linksSitemapDist.uniqueUrls.filter(u => {
-                    const { pathname } = new URL(u);
-                    const LandingCupra = ["/Cupra/", "/NUEVO-FORMENTOR/25", "/NUEVO-LEON/25", "/NUEVO-TERRAMAR/25", "/NUEVO-FORMENTOR-PHEV/25", "/ATECA/24"];
-                    //return !pathname.includes("Cupra");
-                    // devuelve true si contiene alguno de los textos
-                    const contienePalabra = LandingCupra.some(word =>
-                        pathname.toUpperCase().includes(word.toUpperCase())
-                    );
-                    return !contienePalabra; // nos quedamos solo con los que NO matchean
-                });
-                console.log(`✅ Sitemap contiene ${urlsFiltradas.length} enlaces`);
-                let currentDir = path.join(RUTAS.DIST_DIR, `${itemDist.idDist} - ${itemDist.nameDist}`);
-                let screenshotDir = path.join(currentDir, "Capturas_Pantalla");
-                let diffDir = path.join(currentDir, "Diferencias_Visuales");
-                await folders(currentDir);
-                await folders(screenshotDir);
-                await folders(diffDir);
-                const resultsBatch = [];
-                try {
-                    //1. Creando el browser (Navegador) con las pages (Pestañas) hasta el valor de MAX_PARALLEL_URLS
-                    browser = await emularPuppeteer(dispositivoEmulado, false, MAX_PARALLEL_URLS);
-                    // === 2. Procesamiento de Lotes (Lógica sin cambios) ===
-                    const totalLotes = Math.ceil(urlsFiltradas.length / MAX_PARALLEL_URLS);
-                    console.log(`\n📊 Total de URLs: ${urlsFiltradas.length}`);
-                    console.log(`📦 Se dividirán en ${totalLotes} lote(s), máximo ${MAX_PARALLEL_URLS} por lote`);
-                    for (let i = 0; i < urlsFiltradas.length; i += MAX_PARALLEL_URLS) {
-                        const batch = urlsFiltradas.slice(i, i + MAX_PARALLEL_URLS);
-                        const pageBatch = pages.slice(0, batch.length); // Usamos las páginas pre-creadas
-                        // 🔢 Número de lote actual
-                        const numeroLoteActual = Math.floor(i / MAX_PARALLEL_URLS) + 1;
-                        console.log(`\n🚀 PROCESANDO LOTE ${numeroLoteActual} de ${totalLotes}...`);
-                        console.log(`🔗 URLs en este lote (${batch.length}):`);
-                        batch.forEach((url, idx) => {
-                            console.log(`   [${idx + 1}] ${url}`);
-                        });
-                        const promises = batch.map(async (url, idx) => {
-                            // Asignamos una 'page' del lote a la URL
-                            const page = pageBatch[idx];
-                            let nameImg = getSafeFileNameFromUrl(url);
-                            let newUrlValida = getValidUrl(url);
-                            let rutaImg = path.join(screenshotDir, `${nameImg}.png`);
-                            let rutaBase = path.join(RUTAS.baseDir, `${nameImg}.png`);
-                            const filePathDiff = path.join(diffDir, `${nameImg}.png`);
-                            const parsedUrl = new URL(url);
-                            const resultSitioDist = {
-                                idDist: itemDist.idDist,
-                                nameDist: itemDist.nameDist,
-                                urlSitioBase: sitioBase + parsedUrl.pathname + parsedUrl.search + parsedUrl.hash,
-                                urlSitio: newUrlValida,
-                                similitudVisual: "",
-                                mensajeVisual: "",
-                                evidenciaDiff: "",
-                                Device: "",
-                                dimensionesImg: "",
-                                TiempoCargaDOM: null,
-                                TiempoCargaTotal: null,
-                                Error_general: "",
-                            };
-                            let medidas = {};
-                            try {
-                                if (newUrlValida) {
-                                    await page.goto(newUrlValida, {
-                                        waitUntil: 'networkidle2', // espera a que la mayoría de recursos terminen de cargar
-                                        timeout: 120000,
-                                    });
-                                    const tiemposCarga = await tiemposCargaPuppeteer(page);
-                                    resultSitioDist.TiempoCargaDOM = `${tiemposCarga.tiempoDOM.ms} ms (${tiemposCarga.tiempoDOM.s} s)`;
-                                    resultSitioDist.TiempoCargaTotal = `${tiemposCarga.tiempoTotal.ms} ms (${tiemposCarga.tiempoTotal.s} s)`;
-                                    //await takeBodyScreenshot(page,rutaImg);
-                                    medidas = await capturaCompletaPuppeter(page, rutaImg);
-                                }
-                                //const resultComparacionVisual = await compareVisualTesting(rutaBase ,rutaImg, filePathDiff);
-                                const resultComparacionVisual = await compareVisualTestingResemble(rutaBase, rutaImg, filePathDiff);
-
-                                resultSitioDist.similitudVisual = `${resultComparacionVisual.Similitud}%`;
-                                resultSitioDist.mensajeVisual = resultComparacionVisual.Mensaje;
-                                if (resultComparacionVisual.Similitud < 100) {
-                                    resultSitioDist.evidenciaDiff = filePathDiff;
-                                }
-                                resultSitioDist.Device = `Tipo: ${deviceData.name} \nResolución: ${deviceData.ancho}x${deviceData.alto}px`;
-                                resultSitioDist.dimensionesImg = `${medidas.anchoDevice}x${medidas.altoDevice}px`;
-
-                                resultsDist.push(resultSitioDist);
-                            } catch (error) {
-                                console.log(`Error Revisando el sitio: ${url}, ${error}`);
-                                console.log("-".repeat(50));
-                                resultSitioDist.Error_general = error;
+                        let medidas = {};
+                        try {
+                            if (newUrlValida) {
+                                await browserSitio.pages[0].goto(newUrlValida, {
+                                    timeout: 120000,
+                                    waitUntil: 'networkidle2' // espera a que la mayoría de recursos terminen de cargar
+                                });
+                                medidas = await capturaCompletaPuppeter(browserSitio.pages[0], rutaImg);
                             }
-                            return resultSitioDist;
-                        });
-                        const results = await Promise.all(promises);
-                        resultsBatch.push(...results);
-                    }
-                } catch (error) {
-                    console.error(`Error procesando URLs de ${itemDist.nameDist}:`, error);
-                } finally {
-                    if (browser) {
-                        try {
-                            await browser.close();
-                        } catch (err) {
-                            console.error("Error al cerrar el navegador Puppeteer:", err);
+                            const resultComparacionVisual = await compareVisualTestingResemble(rutaBase, rutaImg, filePathDiff);
+
+                            resultSitioDist.similitudVisual = `${resultComparacionVisual.Similitud}%`;
+                            resultSitioDist.mensajeVisual = resultComparacionVisual.Mensaje;
+                            if (resultComparacionVisual.Similitud < 100) {
+                                resultSitioDist.evidenciaDiff = filePathDiff;
+                            }
+                            resultSitioDist.Device = `Tipo: ${browserSitio.deviceData.name} \nResolución: ${browserSitio.deviceData.ancho}x${browserSitio.deviceData.alto}px`;
+                            resultSitioDist.dimensionesImg = `${medidas.anchoDevice}x${medidas.altoDevice}px`;
+                            resultsDist.push(resultSitioDist);
+                        } catch (error) {
+                            console.log(`Error al revisar link ${url} del sitemap de la Distribuidora: ${itemDist.nameDist}  \n\n-->${error}`);
+                            resultSitioDist.Error_general = error;
+                            resultsDist.push(resultSitioDist);
+                        } finally {
+                            if (browserSitio) {
+                                try {
+                                    await browserSitio.browser.close();
+                                } catch (err) {
+                                    console.error("Error al cerrar el navegador Puppeteer:", err);
+                                }
+                            }
                         }
+                        //if (i >= numBreak) break;
+                        i++;
                     }
                 }
-                resultsDist.push(...resultsBatch);
                 resultsGeneral.push(resultDistGeneral);
                 index++;
             }
@@ -432,11 +271,11 @@ async function main() {
         console.error('❌ Error en la ejecución del script:', error);
     } finally {
         reportarTiempo(startProcessTime, distribuidoras.length);
-        if (browser) {
-            await browser.close();
+        if (browserSitio) {
+            await browserSitio.browser.close();
         }
-        if (homeBrowser) {
-            await homeBrowser.close();
+        if (browserBase) {
+            await browserBase.browser.close();
         }
         if (browserDist) {
             await browserDist.close();
@@ -448,11 +287,11 @@ async function main() {
 // Manejo seguro de interrupción (Ctrl + C)
 process.on('SIGINT', async () => {
     console.log('\n\n🛑🚫 Interrupción detectada. Cerrando navegador...');
-    if (browser) {
-        await browser.close();
+    if (browserSitio) {
+        await browserSitio.browser.close();
     }
-    if (homeBrowser) {
-        await homeBrowser.close();
+    if (browserBase) {
+        await browserBase.browser.close();
     }
     if (browserDist) {
         await browserDist.close();
