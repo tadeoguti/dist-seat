@@ -89,7 +89,7 @@ async function main() {
             let newUrlBase;
             try {
                 //1. Creando el browser (Navegador) con las pages (Pestañas) hasta el valor de MAX_PARALLEL_URLS
-                browserBase = await emularPuppeteer(dispositivoEmulado, false, MAX_PARALLEL_URLS);
+                browserBase = await emularPuppeteer(dispositivoEmulado, true, MAX_PARALLEL_URLS);
 
                 console.log(`\n📊 Total de URLs: ${urlsFiltradasBase.length}`);
 
@@ -193,7 +193,7 @@ async function main() {
                         let rutaBase = path.join(RUTAS.baseDir, `${nameImg}.png`);
                         const filePathDiff = path.join(diffDir, `${nameImg}.png`);
                         const parsedUrl = new URL(url);
-                        browserSitio = await emularPuppeteer(dispositivoEmulado, false, MAX_PARALLEL_URLS);
+                        browserSitio = await emularPuppeteer(dispositivoEmulado, true, MAX_PARALLEL_URLS);
                         let resultSitioDist = {
                             idDist: itemDist.idDist,
                             nameDist: itemDist.nameDist,

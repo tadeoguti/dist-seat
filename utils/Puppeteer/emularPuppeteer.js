@@ -13,8 +13,13 @@ const path = require("path");
 async function emularPuppeteer(nombreDispositivo, headless = true, maxPages = 1) {
     const browser = await puppeteer.launch({
         headless: headless,        // true = sin ventana, false = visible
-        defaultViewport: null,     // para usar el viewport completo de la pantalla
-        protocolTimeout: 120000    // (120s = 2 minutos)
+        defaultViewport: null, // para usar el viewport completo de la pantalla
+        protocolTimeout: 120000,    // (120s = 2 minutos)
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage', // recomendado para contenedores
+        ]
     });
     const device = KnownDevices[nombreDispositivo];
     const pages = [];
