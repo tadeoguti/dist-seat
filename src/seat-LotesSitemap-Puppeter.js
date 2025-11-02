@@ -24,7 +24,7 @@ const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 let browserDist, browser, homeBrowser;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-async function validacionesPrincipales() {
+async function validacionesPrincipales(distIds = []) {
     try {
         const nameMarca = "Seat";
         let resultsGeneral = [];
@@ -85,18 +85,23 @@ async function validacionesPrincipales() {
         const pathJson = await getDistribuidoraPuppeteer(pageDist, nameMarca, RUTAS.list_Distri);
         await browserDist.close();
         distribuidoras = JSON.parse(
-            fs.readFileSync(path.join(pathJson), 
-            "utf-8"
-        ));
+            fs.readFileSync(path.join(pathJson),
+                "utf-8"
+            ));
         const dirPathJson = path.dirname(pathJson);
         cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
         // 🔧 Solo prueba con las primeras 5 distribuidoras
         //distribuidoras = distribuidoras.slice(0, 2);
         console.log("=".repeat(60));
-        //console.log(`\nSelecciona las distribuidoras a Revisar: \n Presiona: "Espacio" para seleccionar | "a" para seleccionar todas | "i" para invertir la sección | "Enter" para continuar el proceso con la sección elegida`)
-        distribuidoras = await seleccionarDistribuidoras(distribuidoras);
+        // Filtrar las distribuidoras recibidas por API
+        if (distIds.length > 0) {
+            const distIdsStr = distIds.map(id => id.toString());
+            distribuidoras = distribuidoras.filter(d => distIdsStr.includes(d.idDist));
+            //distribuidoras = distribuidoras.filter(d => distIds.includes(Number(d.idDist)));
+        }
+
         if (distribuidoras.length === 0) {
-            console.log("🛑 No se seleccionó ninguna distribuidora. Proceso cancelado.");
+            console.log("🛑 No hay distribuidoras válidas para procesar.");
             return;
         }
         // Procesar cada distribuidora
@@ -354,11 +359,11 @@ async function validacionesPrincipales() {
                                     resultSitioDist.statusMensaje = `OK. Continuando con las validaciones DOM y tiempos de carga.`;
                                 }
                                 // Salta el resto de validaciones si no fue 200/300, etc.
-                                if (response.status() >= 400 || response.status() === 0){
+                                if (response.status() >= 400 || response.status() === 0) {
                                     console.error(`\n❌ [${response.status()}] Error: ${response.statusText()} en ${url}.`);
-                                    resultSitioDist.statusMensaje =`Error: ${response.statusText()}.`;
+                                    resultSitioDist.statusMensaje = `Error: ${response.statusText()}.`;
                                     return resultSitioDist;
-                                } 
+                                }
                             } else {
                                 // Esto solo ocurre en raras ocasiones si la conexión se establece pero no devuelve encabezados
                                 resultSitioDist.statusURL = 0;
@@ -465,4 +470,5 @@ process.on('SIGINT', async () => {
     console.log('Navegador de Puppeteer cerrado.');
     process.exit(0);
 });
-validacionesPrincipales();
+//validacionesPrincipales();
+module.exports = {validacionesPrincipales};
