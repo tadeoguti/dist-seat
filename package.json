@@ -4,18 +4,20 @@
   "description": "Automatización de validación de sitios SEAT con Puppeteer",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon src/index.js",
     "start": "node src/seat-LotesSitemap-Puppeter.js",
     "validar:distribuidoras": "node src/seat-LotesSitemap-Puppeter.js",
-    "docker:start": "node src/seat-LotesSitemap-Puppeter.js",
-    "validar:mobile": "node src/seat-RevisionMobile-Puppeteer.js",
-    "docker:mobile": "node src/seat-RevisionMobile-Puppeteer.js"
+    "validar:mobile": "node src/seat-RevisionMobile-Puppeteer.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "canvas": "^3.2.0",
+    "cross-env": "^10.0.0",
+    "dotenv": "^17.2.2",
     "exceljs": "^4.4.0",
+    "express": "^5.1.0",
     "fast-xml-parser": "^5.2.5",
     "inquirer": "^8.2.7",
     "node-fetch": "^3.3.2",
@@ -24,8 +26,9 @@
     "puppeteer": "^24.22.2",
     "resemblejs": "^5.0.0",
     "selenium-webdriver": "^4.35.0",
-    "sharp": "^0.34.4",
-    "dotenv": "^17.2.2",
-    "cross-env": "^10.0.0"
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
