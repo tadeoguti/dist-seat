@@ -24,9 +24,9 @@ const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 let browserDist, browser, homeBrowser;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-async function validacionesPrincipales(distIds = []) {
+async function validacionesPrincipales(nameMarca,distIds = []) {
     try {
-        const nameMarca = "Seat";
+        //const nameMarca = "Seat";
         let resultsGeneral = [];
         let resultsDist = [];
         let linksSitemapDist = {};
