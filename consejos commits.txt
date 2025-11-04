@@ -1,0 +1,39 @@
+############################################################################################
+#                                                                                          #
+#   Listado de prefijos para manejar tus commits                                           #
+#                                                                                          #
+############################################################################################
+    Prefijo	Uso	Ejemplo
+
+    feat:	    Nueva funcionalidad	feat: añade opción de exportar PDF en reportes
+    feat:       Ampliar lógica de lectura para incluir nuevas tablas en la SP
+    fix:	    Corrección de errores (bugs) fix: corrige error de login con usuarios inactivos
+    docs:	    Cambios en documentación docs: actualiza README con nuevas variables de entorno
+    style:	    Cambios de formato (espacios, sangrías, etc) style: aplica prettier en archivos JS
+    refactor:	Refactorización de código sin cambiar comportamiento refactor: optimiza lógica de búsqueda por nombre
+    test:	    Agregar o ajustar pruebas test: añade pruebas unitarias al módulo de pagos
+    chore:	    Tareas menores o de mantenimiento chore: actualiza dependencias npm
+    perf:	    Mejoras de rendimiento perf: reduce el tiempo de carga del dashboard
+    build:	    Cambios relacionados al proceso de build o herramientas	build: configura Webpack para producción
+    ci:	        Cambios en integración continua	ci: agrega paso de linting a GitHub Actions
+    revert:	    Revertir un commit anterior	revert: revierte commit 9f0b1c0 que rompía el login
+
+############################################################################################
+#                                                                                          #
+#   ¿Que pasa si lo que hicimos en el codigo abarca multiples categorias?                  #
+#                                                                                          #
+############################################################################################
+    
+    
+    ✅ Opción ideal (separar por commit):
+        git add archivo1.cs # Solo lo relacionado al bug
+        git commit -m "fix: corrige error al validar email"
+
+        git add archivo1.cs # Ahora solo los cambios de estilo (sangrías, etc)
+        git commit -m "style: ajusta formato y espacios en archivo1.cs"
+
+        git add archivo1.cs # Finalmente, cambios de estructura sin afectar lógica
+        git commit -m "refactor: mejora legibilidad del método de validación"
+
+    ❗ Si no puedes dividir y es muy difícil separar, usa un mensaje combinado pero bien explicado:
+        git commit -m "fix: corrige validación de email con refactor y limpieza de estilo"

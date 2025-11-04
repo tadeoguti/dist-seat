@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+Dockerfile
+.dockerignore
+docker-compose.yml
+.vscode
+keys
+uploads

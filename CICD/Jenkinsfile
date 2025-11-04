@@ -1,0 +1,75 @@
+pipeline {
+  agent any
+
+  environment {
+    IMAGE_NAME = 'backend-node-api'
+    PORT = '4000'
+    NAMEUSER = 'Jesus Zatarain Test'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git credentialsId: 'azure-repo', url: 'https://dev.azure.com/ExagonoSoftware/DistVW2025/_git/DistVW2025_API', branch: 'production'
+      }
+    }
+
+    stage('Generar llave privada') {
+        steps {
+            script {
+                try {
+                    sh 'echo "Iniciando con la egeneracion del archivo key"'
+                    withCredentials([sshUserPrivateKey(credentialsId: 'wvuserapi-key', keyFileVariable: 'SSH_KEY')]) {
+                      sh '''
+                        echo "Creando la carpeta keys en la raiz del proyecto."
+                        mkdir -p ./keys
+                        echo "Crear archivo con la llave secreta dentro de keys."
+                        cp $SSH_KEY ./keys/wvuserapi_rsa
+                        echo "Asignar permisos de solo lectura y escritura al propietario."
+                        chmod 600 ./keys/wvuserapi_rsa
+                      '''
+                    }
+                    echo "Archivo generado correctamente"
+                } catch (Exception e) {
+                    echo "⚠️ Error al generar el archivo: ${e.getMessage()}"
+                    currentBuild.result = 'FAILURE'
+                    error("Deteniendo el pipeline por error en la llave")
+                }
+            }
+        }
+    }
+
+    stage('Construir y Desplegar') {
+      steps {
+        dir('CICD') {
+          withEnv([
+            "PORT=${env.PORT}",
+            "AMBIENTE=production"
+          ]) {
+            script {
+              sh 'cp .env.production ../.env'
+              sh 'docker-compose down || true'
+              sh 'docker-compose build'
+              sh 'docker-compose up -d'
+            }
+          }
+        }
+      }
+    }
+
+    stage('Verificar contenedores') {
+      steps {
+        sh 'docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo '✅ ¡Backend desplegado correctamente!'
+    }
+    failure {
+      echo '❌ Fallo durante el despliegue del backend.'
+    }
+  }
+}
