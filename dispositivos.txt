@@ -1,0 +1,133 @@
+📱 Dispositivos disponibles (131):
+
+1. Blackberry PlayBook
+2. Blackberry PlayBook landscape
+3. BlackBerry Z30
+4. BlackBerry Z30 landscape
+5. Galaxy Note 3
+6. Galaxy Note 3 landscape
+7. Galaxy Note II
+8. Galaxy Note II landscape
+9. Galaxy S III
+10. Galaxy S III landscape
+11. Galaxy S5
+12. Galaxy S5 landscape
+13. Galaxy S8
+14. Galaxy S8 landscape
+15. Galaxy S9+
+16. Galaxy S9+ landscape
+17. Galaxy Tab S4
+18. Galaxy Tab S4 landscape
+19. iPad
+20. iPad landscape
+21. iPad (gen 6)
+22. iPad (gen 6) landscape
+23. iPad (gen 7)
+24. iPad (gen 7) landscape
+25. iPad Mini
+26. iPad Mini landscape
+27. iPad Pro
+28. iPad Pro landscape
+29. iPad Pro 11
+30. iPad Pro 11 landscape
+31. iPhone 4
+32. iPhone 4 landscape
+33. iPhone 5
+34. iPhone 5 landscape
+35. iPhone 6
+36. iPhone 6 landscape
+37. iPhone 6 Plus
+38. iPhone 6 Plus landscape
+39. iPhone 7
+40. iPhone 7 landscape
+41. iPhone 7 Plus
+42. iPhone 7 Plus landscape
+43. iPhone 8
+44. iPhone 8 landscape
+45. iPhone 8 Plus
+46. iPhone 8 Plus landscape
+47. iPhone SE
+48. iPhone SE landscape
+49. iPhone X
+50. iPhone X landscape
+51. iPhone XR
+52. iPhone XR landscape
+53. iPhone 11
+54. iPhone 11 landscape
+55. iPhone 11 Pro
+56. iPhone 11 Pro landscape
+57. iPhone 11 Pro Max
+58. iPhone 11 Pro Max landscape
+59. iPhone 12
+60. iPhone 12 landscape
+61. iPhone 12 Pro
+62. iPhone 12 Pro landscape
+63. iPhone 12 Pro Max
+64. iPhone 12 Pro Max landscape
+65. iPhone 12 Mini
+66. iPhone 12 Mini landscape
+67. iPhone 13
+68. iPhone 13 landscape
+69. iPhone 13 Pro
+70. iPhone 13 Pro landscape
+71. iPhone 13 Pro Max
+72. iPhone 13 Pro Max landscape
+73. iPhone 13 Mini
+74. iPhone 13 Mini landscape
+75. iPhone 14
+76. iPhone 14 landscape
+77. iPhone 14 Plus
+78. iPhone 14 Plus landscape
+79. iPhone 14 Pro
+80. iPhone 14 Pro landscape
+81. iPhone 14 Pro Max
+82. iPhone 14 Pro Max landscape
+83. iPhone 15
+84. iPhone 15 landscape
+85. iPhone 15 Plus
+86. iPhone 15 Plus landscape
+87. iPhone 15 Pro
+88. iPhone 15 Pro landscape
+89. iPhone 15 Pro Max
+90. iPhone 15 Pro Max landscape
+91. JioPhone 2
+92. JioPhone 2 landscape
+93. Kindle Fire HDX
+94. Kindle Fire HDX landscape
+95. LG Optimus L70
+96. LG Optimus L70 landscape
+97. Microsoft Lumia 550
+98. Microsoft Lumia 950
+99. Microsoft Lumia 950 landscape
+100. Nexus 10
+101. Nexus 10 landscape
+102. Nexus 4
+103. Nexus 4 landscape
+104. Nexus 5
+105. Nexus 5 landscape
+106. Nexus 5X
+107. Nexus 5X landscape
+108. Nexus 6
+109. Nexus 6 landscape
+110. Nexus 6P
+111. Nexus 6P landscape
+112. Nexus 7
+113. Nexus 7 landscape
+114. Nokia Lumia 520
+115. Nokia Lumia 520 landscape
+116. Nokia N9
+117. Nokia N9 landscape
+118. Pixel 2
+119. Pixel 2 landscape
+120. Pixel 2 XL
+121. Pixel 2 XL landscape
+122. Pixel 3
+123. Pixel 3 landscape
+124. Pixel 4
+125. Pixel 4 landscape
+126. Pixel 4a (5G)
+127. Pixel 4a (5G) landscape
+128. Pixel 5
+129. Pixel 5 landscape
+130. Moto G4
+131. Moto G4 landscape
