@@ -89,10 +89,10 @@ async function saveReportDetalles(resultadosGenerales,resultadosDetalles, filePa
             { header: "Imagen rota", key: "Imagen_rota" },
             { header: "Texto No visble", key: "Texto" },
             { header: "Enlace inválido", key: "Enlace_invalido" },
-            { header: "Error consola", key: "Error_consola" },
             { header: "Título de página", key: "Titulo" },
             { header: "Etiqueta Meta", key: "Etiqueta_Meta" },
             { header: "Enlace externo inválido", key: "Enlace_externo_invalido" },    
+            { header: "Error consola", key: "Error_consola" },
             { header: "Error al Validar DOM", key: "Error_general" },            
         ];
         // Agrega filas
@@ -108,10 +108,10 @@ async function saveReportDetalles(resultadosGenerales,resultadosDetalles, filePa
                 Imagen_rota: item.Imagen_rota,
                 Texto: item.Texto,
                 Enlace_invalido: item.Enlace_invalido,
-                Error_consola: item.Error_consola,
                 Titulo:item.Titulo,
                 Etiqueta_Meta:item.Etiqueta_Meta,
                 Enlace_externo_invalido:item.Enlace_externo_invalido,
+                Error_consola: item.Error_consola,
                 Error_general:item.Error_general
             });
         });

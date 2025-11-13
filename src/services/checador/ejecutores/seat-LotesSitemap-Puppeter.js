@@ -70,7 +70,7 @@ async function validacionesPrincipales(nameMarca, distIds = []) {
             */
         // Crear carpetas
         const RUTAS = await crearCarpetasResultados(
-            `${nameMarca}-ValidacionesPrincipales`,
+            `${nameMarca}`,
             ["REPORT_DIR"],
             STORAGE_PATH
         );
@@ -489,8 +489,12 @@ async function validacionesPrincipales(nameMarca, distIds = []) {
         const excelPath = path.join(RUTAS.REPORT_DIR, `Reporte_${dateExcel}.xlsx`);
         await saveReportDetalles(resultsGeneral, resultsDist, excelPath);
         cleanfiles(RUTAS.REPORT_DIR, `Reporte_`, `.xlsx`, 5);
-
         console.log("-".repeat(50));
+        return{
+            Excel: excelPath,
+            namelogs: "ejecucion_logs.txt" ,
+            rutaLogs: RUTAS.script_DIR
+        }
     } catch (error) {
         console.error(`❌ Error en la ejecución del script: ${error}`);
     } finally {

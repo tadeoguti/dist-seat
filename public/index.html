@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revisar Distribuidoras</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select {
+      width: 300px;
+      padding: 5px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-top: 10px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>Login</h2>
+  <form id="loginForm">
+    <label>Usuario:</label>
+    <input type="text" id="usuario" required><br><br>
+
+    <label>password:</label>
+    <input type="password" id="password" required><br><br>
+
+    <button type="submit">Iniciar sesión</button>
+  </form>
+
+   <button onclick="localStorage.removeItem('token'); alert('Sesión cerrada'); location.reload();">Cerrar sesión</button>
+
+  <hr>
+
+  <h2>Reporte de Distribuidoras</h2>
+  <form id="reporteForm">
+    <label for="marca">Selecciona una marca:</label>
+    <select id="marca" name="marca" required>
+        <option value="Acura">Acura</option>
+        <option value="Alfa Romeo">Alfa Romeo</option>
+        <option value="BUICK">BUICK</option>
+        <option value="BYD">BYD</option>
+        <option value="Cupra">Cupra</option>
+        <option value="Chevrolet">Chevrolet</option>
+        <option value="Distribuidores">Distribuidores</option>
+        <option value="Dongfeng">Dongfeng</option>
+        <option value="Entregas Express">Entregas Express</option>
+        <option value="Exa" selected>Exa</option>
+        <option value="FCA">FCA</option>
+        <option value="Ford">Ford</option>
+        <option value="GMC">GMC</option>
+        <option value="Go4Tires">Go4Tires</option>
+        <option value="Grupo Rivero">Grupo Rivero</option>
+        <option value="GWM">GWM</option>
+        <option value="Hino">Hino</option>
+        <option value="Honda">Honda</option>
+        <option value="Hyundai">Hyundai</option>
+        <option value="Infiniti">Infiniti</option>
+        <option value="JAC">JAC</option>
+        <option value="KIA">KIA</option>
+        <option value="Lincoln">Lincoln</option>
+        <option value="Mercedes-Benz">Mercedes-Benz</option>
+        <option value="Mercedes-Benz Trucks">Mercedes-Benz Trucks</option>
+        <option value="Mercedes-Benz Vans">Mercedes-Benz Vans</option>
+        <option value="MG">MG</option>
+        <option value="Mitsubishi">Mitsubishi</option>
+        <option value="Multimark">Multimark</option>
+        <option value="Nissan">Nissan</option>
+        <option value="Seat">Seat</option>
+        <option value="Subaru">Subaru</option>
+        <option value="Suzuki">Suzuki</option>
+        <option value="Suzuki Motos">Suzuki Motos</option>
+        <option value="Toyota">Toyota</option>
+        <option value="Unicars">Unicars</option>
+        <option value="Volkswagen">Volkswagen</option>
+        <option value="Chrysler">Chrysler</option>
+        <option value="Fiat">Fiat</option>
+    </select>
+  <br><br>
+
+    <label>Distribuidoras (separadas por coma):</label>
+    <input type="text" id="distribuidoras" required><br><br>
+
+    <button type="submit">Generar reporte</button>
+  </form>
+
+  <hr>
+  <h3>Respuesta del servidor:</h3>
+  <pre id="resultado"></pre>
+  <button id="descargarBtn" style="display:none">Descargar reporte</button>
+
+  <script>
+   // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const usuario = document.getElementById('usuario').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password })
+      });
+
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        alert('Token guardado correctamente');
+      } else {
+        alert('Login fallido');
+      }
+    });
+
+    // REPORTE
+    document.getElementById('reporteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const marca = document.getElementById('marca').value;
+      const distribuidoras = document.getElementById('distribuidoras').value.split(',').map(d => d.trim());
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('Primero debes iniciar sesión');
+        return;
+      }
+
+      const res = await fetch('http://localhost:3000/api/reporte', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ marca, distribuidoras })
+      });
+
+      const data = await res.json();
+      document.getElementById('resultado').textContent = JSON.stringify(data, null, 2);
+      if (res.ok) {
+        //document.getElementById('resultado').textContent = JSON.stringify(data, null, 2);
+        //document.getElementById('distribuidoras').value = '';
+        alert('Reporte generado correctamente');
+
+        if (data.urlExcel) {
+          const btn = document.getElementById('descargarBtn');
+          btn.style.display = 'inline-block';
+          btn.onclick = () => {
+            window.open(data.urlExcel, '_blank');
+          };
+        }
+      } else {
+        alert('Error al generar el reporte');
+      }
+    });
+  </script>
+</body>
+</html>

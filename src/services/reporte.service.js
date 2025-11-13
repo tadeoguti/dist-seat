@@ -1,11 +1,20 @@
 // src/services/user.service.js
 const { validacionesPrincipales } = require("./checador/ejecutores/seat-LotesSitemap-Puppeter");
-// Ejemplo de función que luego reemplazas con tu lógica real
-async function createReporte() {
-  // Aquí va tu código (ej: llamar a otra API, procesar datos, etc.)
-      const resultado = await validacionesPrincipales("pessi");
+const path = require('path');
 
-      return { message: "Reporte creado (simulado)", data: resultado };
+async function createReporte(Marca, Distribuidoras) {
+
+      const resultado = await validacionesPrincipales(Marca, Distribuidoras);
+
+      const nombreArchivo = path.basename(resultado.Excel); // extrae solo el nombre del archivo
+      const rutaRelativa = `Resultados/${Marca}-ValidacionesPrincipales/Reporte/${nombreArchivo}`;
+      const urlArchivo = `http://localhost:3000/storage/${rutaRelativa}`;
+
+      return { 
+        message: "Reporte creado", 
+        urlExcel: urlArchivo,
+        datos: resultado 
+      };
 }
 
 // async function getUsers() {
