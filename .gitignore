@@ -5,4 +5,5 @@ Resultados/
 dispositivos.txt
 src/dist/
 .vscode/
-storage/
+storage/dist/
+storage/Resultados/
