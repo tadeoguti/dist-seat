@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Exagono - Front</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 24px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1, h2 { margin: 0 0 12px; }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; }
+    input, textarea, select, button { padding: 10px; font-size: 14px; }
+    input, textarea, select { width: 100%; box-sizing: border-box; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .muted { color: #666; font-size: 12px; }
+    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #eee; font-size: 12px; margin-left: 8px; }
+    .success { color: #0a7a3e; }
+    .error { color: #b00020; }
+    pre { background: #111; color: #0f0; padding: 12px; overflow: auto; border-radius: 6px; }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .divider { border-top: 1px solid #ddd; margin: 16px 0; }
+    .token-box { word-break: break-all; font-size: 12px; background: #f7f7f7; padding: 8px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React 18 via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <script>
+    const { useState } = React;
+
+    function App() {
+      const [baseUrl, setBaseUrl] = useState('http://localhost:3000');
+      const [token, setToken] = useState('');
+      const [loginEmail, setLoginEmail] = useState('nuevo@correo.com');
+      const [loginPassword, setLoginPassword] = useState('123456');
+
+      const [marca, setMarca] = useState('Seat');
+      const [distribuidorasText, setDistribuidorasText] = useState('Distribuidora A\nDistribuidora B');
+      const [respLogin, setRespLogin] = useState(null);
+      const [respCrearReporte, setRespCrearReporte] = useState(null);
+      const [respMisReportes, setRespMisReportes] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [errorMsg, setErrorMsg] = useState('');
+
+      const joinDistribuidoras = () =>
+        distribuidorasText
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
+
+      async function callApi(path, options = {}) {
+        setLoading(true);
+        setErrorMsg('');
+        try {
+          const res = await fetch(`${baseUrl}${path}`, options);
+          const json = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(json?.error || json?.message || `HTTP ${res.status}`);
+          }
+          return json;
+        } catch (err) {
+          setErrorMsg(err.message);
+          return null;
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function doLogin() {
+        const body = { email: loginEmail, password: loginPassword };
+        const json = await callApi('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (json) {
+          setRespLogin(json);
+          setToken(json.token || '');
+        }
+      }
+
+      async function crearReporte() {
+        const body = {
+          marca,
+          distribuidoras: joinDistribuidoras()
+        };
+        const json = await callApi('/api/reporte', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(body),
+        });
+        if (json) setRespCrearReporte(json);
+      }
+
+      async function listarMisReportes() {
+        const json = await callApi('/api/reporte/mis-reportes', {
+          method: 'GET',
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        if (json) setRespMisReportes(json);
+      }
+
+      return (
+        React.createElement('div', { className: 'container' },
+          React.createElement('h1', null, 'Exagono — Frontend'),
+          React.createElement('div', { className: 'muted' }, 'Demo simple para capturas: login, crear reporte y listar mis reportes.'),
+
+          // Configuración
+          React.createElement('div', { className: 'card' },
+            React.createElement('h2', null, 'Configuración'),
+            React.createElement('div', { className: 'grid-2' },
+              React.createElement('div', null,
+                React.createElement('label', null, 'Base URL'),
+                React.createElement('input', {
+                  value: baseUrl,
+                  onChange: e => setBaseUrl(e.target.value),
+                  placeholder: 'http://localhost:3000'
+                }),
+                React.createElement('div', { className: 'muted' }, 'Ajusta si tu API corre en otro puerto.')
+              ),
+              React.createElement('div', null,
+                React.createElement('label', null, 'Token JWT'),
+                React.createElement('div', { className: 'token-box' }, token || '— sin token —')
+              )
+            ),
+            React.createElement('div', { className: 'toolbar' },
+              React.createElement('button', { onClick: () => setToken(''), title: 'Limpiar token' }, 'Limpiar token'),
+              loading ? React.createElement('span', { className: 'badge' }, 'Cargando...') : null
+            ),
+            errorMsg ? React.createElement('div', { className: 'error' }, `Error: ${errorMsg}`) : null
+          ),
+
+          // Login
+          React.createElement('div', { className: 'card' },
+            React.createElement('h2', null, 'Login'),
+            React.createElement('div', { className: 'grid-2' },
+              React.createElement('div', null,
+                React.createElement('label', null, 'Email'),
+                React.createElement('input', {
+                  value: loginEmail,
+                  onChange: e => setLoginEmail(e.target.value),
+                  placeholder: 'correo@ejemplo.com'
+                })
+              ),
+              React.createElement('div', null,
+                React.createElement('label', null, 'Password'),
+                React.createElement('input', {
+                  type: 'password',
+                  value: loginPassword,
+                  onChange: e => setLoginPassword(e.target.value),
+                  placeholder: '********'
+                })
+              )
+            ),
+            React.createElement('div', { className: 'toolbar' },
+              React.createElement('button', { onClick: doLogin }, 'Iniciar sesión')
+            ),
+            respLogin ? React.createElement('div', null,
+              React.createElement('div', { className: 'success' }, 'Login exitoso'),
+              React.createElement('pre', null, JSON.stringify(respLogin, null, 2))
+            ) : null
+          ),
+
+          // Crear reporte
+          React.createElement('div', { className: 'card' },
+            React.createElement('h2', null, 'Crear reporte'),
+            React.createElement('div', { className: 'grid-2' },
+              React.createElement('div', null,
+                React.createElement('label', null, 'Marca'),
+                React.createElement('input', {
+                  value: marca,
+                  onChange: e => setMarca(e.target.value),
+                  placeholder: 'Ej: Seat'
+                })
+              ),
+              React.createElement('div', null,
+                React.createElement('label', null, 'Distribuidoras (una por línea)'),
+                React.createElement('textarea', {
+                  rows: 5,
+                  value: distribuidorasText,
+                  onChange: e => setDistribuidorasText(e.target.value),
+                  placeholder: 'Distribuidora A\nDistribuidora B'
+                })
+              )
+            ),
+            React.createElement('div', { className: 'toolbar' },
+              React.createElement('button', { onClick: crearReporte }, 'Crear reporte')
+            ),
+            respCrearReporte ? React.createElement('div', null,
+              React.createElement('div', { className: 'success' }, 'Reporte creado'),
+              React.createElement('pre', null, JSON.stringify(respCrearReporte, null, 2))
+            ) : null
+          ),
+
+          // Mis reportes
+          React.createElement('div', { className: 'card' },
+            React.createElement('h2', null, 'Mis reportes'),
+            React.createElement('div', { className: 'toolbar' },
+              React.createElement('button', { onClick: listarMisReportes }, 'Listar mis reportes')
+            ),
+            respMisReportes ? React.createElement('div', null,
+              React.createElement('pre', null, JSON.stringify(respMisReportes, null, 2))
+            ) : React.createElement('div', { className: 'muted' }, 'Aún no hay datos cargados.')
+          ),
+
+          React.createElement('div', { className: 'divider' }),
+          React.createElement('div', { className: 'muted' },
+            'Tip: inicia sesión primero para obtener el token y úsalo en Crear reporte y Mis reportes.'
+          )
+        )
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>

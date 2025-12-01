@@ -7,3 +7,8 @@ src/dist/
 .vscode/
 storage/dist/
 storage/Resultados/
+tests/
+tests/testMysql2.js
+bd-tables.sql
+Actividades pendientes API.md
+readme.md

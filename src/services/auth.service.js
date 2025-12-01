@@ -17,7 +17,7 @@
 // module.exports = router;
 
 
-const { generarToken } = require('../middlewares/auth.middlewares');
+const { generarToken } = require('../helpers/auth.helpers');
 
 const loginService = (usuario, password) => {
   // Simulación de validación

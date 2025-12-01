@@ -13,21 +13,22 @@ async function createReporte(req, res) {
       return res.status(400).json({ error: 'Debes enviar al menos una distribuidora' });
     }
 
-    const reporte = await reporteService.createReporte(marca, distribuidoras);
+    const userId = req.usuario.id; 
+    const reporte = await reporteService.createReporte(marca, distribuidoras, userId);
     res.status(201).json(reporte);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 }
 
-// async function getUsers(req, res) {
-//   try {
-//     const users = await userService.getUsers();
-//     res.json(users);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// }
+async function getMisReportes(req, res) {
+  try {
+    const usuarioId = req.usuario.id; // viene del token
+    const reportes = await reporteService.getReportesByUserId(usuarioId);
+    res.json(reportes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 
-//module.exports = { createUser, getUsers };
-module.exports = { createReporte };
+module.exports = { createReporte, getMisReportes };

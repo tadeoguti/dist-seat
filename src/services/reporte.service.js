@@ -1,28 +1,29 @@
 // src/services/user.service.js
 const { validacionesPrincipales } = require("./checador/ejecutores/seat-LotesSitemap-Puppeter");
 const path = require('path');
+const reporteRepository = require("../repository/reporte.repository");
 
-async function createReporte(Marca, Distribuidoras) {
-
+async function createReporte(Marca, Distribuidoras, UserId) {
       const resultado = await validacionesPrincipales(Marca, Distribuidoras);
 
       const nombreArchivo = path.basename(resultado.Excel); // extrae solo el nombre del archivo
       const rutaRelativa = `Resultados/${Marca}-ValidacionesPrincipales/Reporte/${nombreArchivo}`;
       const urlArchivo = `http://localhost:3000/storage/${rutaRelativa}`;
 
+      //Guardar en DB
+      const reporte = await reporteRepository.createReporte(UserId, Marca, Distribuidoras, urlArchivo);
+
       return { 
         message: "Reporte creado", 
-        urlExcel: urlArchivo,
+        reporte,
+        //userId: UserId,
+        //urlExcel: urlArchivo,
         datos: resultado 
       };
 }
 
-// async function getUsers() {
-//   // Aquí va tu código (ej: devolver datos de un archivo, API externa, etc.)
-//   return [{ id: 1, name: "Usuario de prueba" }];
-// }
-
-module.exports = { createReporte };
-
-
-
+async function getReportesByUserId(UserId) {
+  return await reporteRepository.getReportesByUserId(UserId);
+}
+ 
+module.exports = { createReporte, getReportesByUserId };

@@ -77,21 +77,38 @@ async function validacionesPrincipales(nameMarca, distIds = []) {
         //Guardado de los logs
         setupLoggingToFile(RUTAS.script_DIR, "ejecucion_logs.txt");
         // Obtener distribuidores
-        browserDist = await driverPuppeteer(true);
-        const pageDist = await browserDist.newPage();
-        await pageDist.setViewport({
-            width: VIEWPORT_WIDTH,
-            height: VIEWPORT_HEIGHT,
-        });
-        const pathJson = await getDistribuidoraPuppeteer(
-            pageDist,
-            nameMarca,
-            RUTAS.list_Distri
-        );
-        await browserDist.close();
-        distribuidoras = JSON.parse(fs.readFileSync(path.join(pathJson), "utf-8"));
-        const dirPathJson = path.dirname(pathJson);
-        cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
+        // browserDist = await driverPuppeteer(true);
+        // const pageDist = await browserDist.newPage();
+        // await pageDist.setViewport({
+        //     width: VIEWPORT_WIDTH,
+        //     height: VIEWPORT_HEIGHT,
+        // });
+        // const pathJson = await getDistribuidoraPuppeteer(
+        //     pageDist,
+        //     nameMarca,
+        //     RUTAS.list_Distri
+        // );
+        // await browserDist.close();
+        // distribuidoras = JSON.parse(fs.readFileSync(path.join(pathJson), "utf-8"));
+        // const dirPathJson = path.dirname(pathJson);
+        // cleanfiles(dirPathJson, `${nameMarca}_`, `.json`, 2);
+
+        // Ruta fija donde se guardan los JSON de distribuidoras
+        const DIST_PATH = path.resolve(process.cwd(), "storage", "dist");
+        // Leer todos los archivos en la carpeta dist
+        const files = fs.readdirSync(DIST_PATH);
+        // Filtrar solo los que corresponden a la marca
+        const marcaFiles = files.filter(f => f.startsWith(nameMarca + "_") && f.endsWith(".json"));
+        if (marcaFiles.length === 0) {
+            console.log(`🛑 No se encontró ningún archivo para la marca ${nameMarca}`);
+            return;
+        }
+        // Ordenar por nombre (como incluye fecha/hora, el último será el más reciente)
+        const latestFile = marcaFiles.sort().reverse()[0];
+        const filePath = path.join(DIST_PATH, latestFile);
+        console.log(`📂 Usando archivo más reciente: ${latestFile}`);
+        // Leer el JSON
+        distribuidoras = JSON.parse(fs.readFileSync(filePath, "utf-8"));
         console.log("=".repeat(60));
         // Filtrar las distribuidoras recibidas por API
         if (distIds.length > 0) {
@@ -490,9 +507,9 @@ async function validacionesPrincipales(nameMarca, distIds = []) {
         await saveReportDetalles(resultsGeneral, resultsDist, excelPath);
         cleanfiles(RUTAS.REPORT_DIR, `Reporte_`, `.xlsx`, 5);
         console.log("-".repeat(50));
-        return{
+        return {
             Excel: excelPath,
-            namelogs: "ejecucion_logs.txt" ,
+            namelogs: "ejecucion_logs.txt",
             rutaLogs: RUTAS.script_DIR
         }
     } catch (error) {
