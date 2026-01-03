@@ -1,14 +1,14 @@
-dist/
-.env
-node_modules/
-Resultados/
+dist-backend/node_modules/
+dist-frontend/node_modules/
+
 dispositivos.txt
-src/dist/
+
 .vscode/
-storage/dist/
-storage/Resultados/
-tests/
-tests/testMysql2.js
+dist-backend/storage/dist/
+dist-backend/storage/Resultados/
+dist-backend/tests/
+
+.env
 bd-tables.sql
 Actividades pendientes API.md
 readme.md
