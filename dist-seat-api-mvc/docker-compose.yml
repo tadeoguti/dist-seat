@@ -28,5 +28,24 @@ services:
       - db_data:/var/opt/mssql
       - ./db-init:/db-init
 
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dist-db-initializer
+    depends_on:
+      - db
+    volumes:
+      - ./db-init:/db-init
+    environment:
+      ACCEPT_EULA: Y
+    command: >
+      bash -c '
+      echo "Esperando a que SQL Server inicie (20s)..."
+      sleep 20
+      echo "Ejecutando script initSQL.sql..."
+      /opt/mssql-tools18/bin/sqlcmd -S db -U SA -P "Root.12345" -C -i /db-init/initSQL.sql
+      echo "Ejecución finalizada."
+      '
+
 volumes:
   db_data: {}
