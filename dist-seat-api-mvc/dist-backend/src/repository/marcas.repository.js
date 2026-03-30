@@ -1,22 +1,24 @@
 // src/repository/marca.repository.js
-const db = require("../db/mysql/connection");
+const { poolPromise, sql } = require("../db/sqlserver/connection");
 
 /**
  * Obtiene todas las marcas (activas e inactivas)
  */
 async function findAllMarcas() {
-  const [rows] = await db.execute("SELECT * FROM marcas");
-  return rows;
+  const pool = await poolPromise;
+  const result = await pool.request().query("SELECT * FROM marcas");
+  return result.recordset;
 }
 
 /**
  * Obtiene solo las marcas activas
  */
 async function getMarcasActivas() {
-  const [rows] = await db.execute(
-    "SELECT id, nombre FROM marcas WHERE activa = true",
+  const pool = await poolPromise;
+  const result = await pool.request().query(
+    "SELECT id, nombre FROM marcas WHERE activa = 1",
   );
-  return rows;
+  return result.recordset;
 }
 
 /**
@@ -32,23 +34,31 @@ async function createOrUpdateMarca(
   activa = true,
   ultimaActualizacion = null,
 ) {
-  const [result] = await db.execute(
-    `INSERT INTO marcas (id, nombre, activa, ultima_actualizacion)
-     VALUES (?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       nombre = VALUES(nombre),
-       activa = VALUES(activa),
-       ultima_actualizacion = VALUES(ultima_actualizacion)`,
-    [id, nombre, activa, ultimaActualizacion],
-  );
-  return result.insertId || id;
+  const pool = await poolPromise;
+  await pool.request()
+    .input('id', sql.Int, id)
+    .input('nombre', sql.VarChar, nombre)
+    .input('activa', sql.Bit, activa ? 1 : 0)
+    .input('ultimaActualizacion', sql.DateTime2, ultimaActualizacion)
+    .query(`
+      MERGE marcas AS target
+      USING (SELECT @id AS id) AS source
+      ON (target.id = source.id)
+      WHEN MATCHED THEN
+        UPDATE SET nombre = @nombre, activa = @activa, ultima_actualizacion = @ultimaActualizacion
+      WHEN NOT MATCHED THEN
+        INSERT (id, nombre, activa, ultima_actualizacion)
+        VALUES (@id, @nombre, @activa, @ultimaActualizacion);
+    `);
+  return id;
 }
 
 /**
  * Borra todas las marcas (útil para recargar desde cero)
  */
 async function deleteAllMarcas() {
-  await db.execute("DELETE FROM marcas");
+  const pool = await poolPromise;
+  await pool.request().query("DELETE FROM marcas");
 }
 
 /**
@@ -56,10 +66,10 @@ async function deleteAllMarcas() {
  * @param {number} marcaId
  */
 async function actualizarUltimaActualizacion(marcaId) {
-  await db.execute(
-    "UPDATE marcas SET ultima_actualizacion = NOW() WHERE id = ?",
-    [marcaId],
-  );
+  const pool = await poolPromise;
+  await pool.request()
+    .input('marcaId', sql.Int, marcaId)
+    .query("UPDATE marcas SET ultima_actualizacion = GETDATE() WHERE id = @marcaId");
 }
 
 module.exports = {

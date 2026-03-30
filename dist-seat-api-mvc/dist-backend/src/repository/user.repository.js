@@ -1,11 +1,12 @@
 //backend/src/repository/user.repository.js
-const db = require("../db/mysql/connection");
+const { poolPromise, sql } = require("../db/sqlserver/connection");
 
 async function findUserByEmail(email) {
-  const [rows] = await db.execute("SELECT * FROM usuarios WHERE email = ?", [
-    email,
-  ]);
-  return rows[0];
+  const pool = await poolPromise;
+  const result = await pool.request()
+    .input('email', sql.VarChar, email)
+    .query("SELECT * FROM usuarios WHERE email = @email");
+  return result.recordset[0];
 }
 
 async function createUser(
@@ -15,64 +16,81 @@ async function createUser(
   roleId,
   activo = true,
 ) {
-  const [result] = await db.execute(
-    "INSERT INTO usuarios (username, email, password_hash, role_id,activo) VALUES (?, ?, ?, ?, ?)",
-    [username, email, passwordHash, roleId, activo],
-  );
-  return result.insertId;
+  const pool = await poolPromise;
+  const result = await pool.request()
+    .input('username', sql.VarChar, username)
+    .input('email', sql.VarChar, email)
+    .input('passwordHash', sql.VarChar, passwordHash)
+    .input('roleId', sql.Int, roleId)
+    .input('activo', sql.Bit, activo ? 1 : 0)
+    .query(`
+      INSERT INTO usuarios (username, email, password_hash, role_id, activo) 
+      OUTPUT inserted.id
+      VALUES (@username, @email, @passwordHash, @roleId, @activo)
+    `);
+  return result.recordset[0].id;
 }
 
 async function obtenerUsuariosDesdeBD() {
-  const [rows] = await db.execute(
+  const pool = await poolPromise;
+  const result = await pool.request().query(
     "SELECT id, username, email, role_id, activo FROM usuarios",
   );
-  return rows;
+  return result.recordset;
 }
 
 async function actualizarUsuarioEnBD(id, campos) {
-  const columnas = [];
-  const valores = [];
+  if (Object.keys(campos).length === 0) return false;
+  const pool = await poolPromise;
+  const request = pool.request();
+  
+  const setClauses = [];
   if (campos.username) {
-    columnas.push("username = ?");
-    valores.push(campos.username);
+    setClauses.push("username = @username");
+    request.input('username', sql.VarChar, campos.username);
   }
   if (campos.email) {
-    columnas.push("email = ?");
-    valores.push(campos.email);
+    setClauses.push("email = @email");
+    request.input('email', sql.VarChar, campos.email);
   }
   if (campos.passwordHash) {
-    columnas.push("password_hash = ?");
-    valores.push(campos.passwordHash);
+    setClauses.push("password_hash = @passwordHash");
+    request.input('passwordHash', sql.VarChar, campos.passwordHash);
   }
   if (campos.roleId) {
-    columnas.push("role_id = ?");
-    valores.push(campos.roleId);
+    setClauses.push("role_id = @roleId");
+    request.input('roleId', sql.Int, campos.roleId);
   }
-  if (columnas.length === 0) return false;
-  valores.push(id);
-  const sql = `UPDATE usuarios SET ${columnas.join(", ")} WHERE id = ?`;
-  const [result] = await db.execute(sql, valores);
-  return result.affectedRows > 0;
+  if (setClauses.length === 0) return false;
+  
+  request.input('id', sql.Int, id);
+  const sqlQuery = `UPDATE usuarios SET ${setClauses.join(", ")} WHERE id = @id`;
+  const result = await request.query(sqlQuery);
+  return result.rowsAffected[0] > 0;
 }
+
 async function desactivarUsuarioEnBD(id) {
-  const [result] = await db.execute(
-    "UPDATE usuarios SET activo = 0 WHERE id = ?",
-    [id],
-  );
-  return result.affectedRows > 0;
+  const pool = await poolPromise;
+  const result = await pool.request()
+    .input('id', sql.Int, id)
+    .query("UPDATE usuarios SET activo = 0 WHERE id = @id");
+  return result.rowsAffected[0] > 0;
 }
 
 async function activarUsuarioEnBD(id) {
-  const [result] = await db.execute(
-    "UPDATE usuarios SET activo = 1 WHERE id = ?",
-    [id],
-  );
-  return result.affectedRows > 0;
+  const pool = await poolPromise;
+  const result = await pool.request()
+    .input('id', sql.Int, id)
+    .query("UPDATE usuarios SET activo = 1 WHERE id = @id");
+  return result.rowsAffected[0] > 0;
 }
 
 async function findUserById(id) {
-  const [rows] = await db.query("SELECT * FROM usuarios WHERE id = ?", [id]);
-  return rows[0];
+  const pool = await poolPromise;
+  const result = await pool.request()
+    .input('id', sql.Int, id)
+    .query("SELECT * FROM usuarios WHERE id = @id");
+  return result.recordset[0];
 }
 
 module.exports = {

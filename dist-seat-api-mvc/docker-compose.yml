@@ -16,19 +16,17 @@ services:
       - db
 
   db:
-    image: mysql:8
+    image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: dist-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: mi_api_db
-      #MYSQL_USER: root
-      #MYSQL_PASSWORD: root123
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Root.12345
     ports:
-      - "3307:3306"
+      - "1433:1433"
     volumes: 
-      - db_data:/var/lib/mysql 
-      - ./db-init:/docker-entrypoint-initdb.d
+      - db_data:/var/opt/mssql
+      - ./db-init:/db-init
 
 volumes:
   db_data: {}

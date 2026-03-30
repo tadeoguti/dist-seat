@@ -1,5 +1,5 @@
 // src/repository/logs.repository.js
-const db = require("../db/mysql/connection");
+const { poolPromise, sql } = require("../db/sqlserver/connection");
 
 /**
  * Registra un intento de scraping en la tabla logs_scraping
@@ -10,11 +10,17 @@ const db = require("../db/mysql/connection");
  * @param {boolean} exitoso - true si fue exitoso, false si falló
  */
 async function registrarLogScraping(marcaId, tipo, mensaje, intento, exitoso) {
-  await db.query(
-    `INSERT INTO logs_scraping (marca_id, tipo, mensaje, intento, exitoso)
-     VALUES (?, ?, ?, ?, ?)`,
-    [marcaId, tipo, mensaje, intento, exitoso],
-  );
+  const pool = await poolPromise;
+  await pool.request()
+    .input('marcaId', sql.Int, marcaId)
+    .input('tipo', sql.VarChar, tipo)
+    .input('mensaje', sql.NVarChar, mensaje)
+    .input('intento', sql.Int, intento)
+    .input('exitoso', sql.Bit, exitoso ? 1 : 0)
+    .query(`
+      INSERT INTO logs_scraping (marca_id, tipo, mensaje, intento, exitoso)
+      VALUES (@marcaId, @tipo, @mensaje, @intento, @exitoso)
+    `);
 }
 
 module.exports = {
