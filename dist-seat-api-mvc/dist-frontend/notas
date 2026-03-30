@@ -1,0 +1,9 @@
+components/ → Componentes visuales reutilizables (como RegisterForm.jsx)
+
+pages/ → Vistas completas o pantallas (como LoginPage.jsx, RegisterPage.jsx)
+
+services/ → Lógica de negocio y llamadas a APIs (authService.js, userService.js, etc.)
+
+utils/ → Funciones auxiliares reutilizables (formateadores, validadores, etc.)
+
+assets/ → Imágenes, íconos, estilos, fuentes, etc.

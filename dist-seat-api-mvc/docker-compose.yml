@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./dist-backend
+      dockerfile: Dockerfile
+    container_name: dist-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./dist-backend/.env
+    volumes:
+      - ./dist-backend/storage:/app/storage
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: dist-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: mi_api_db
+      #MYSQL_USER: root
+      #MYSQL_PASSWORD: root123
+    ports:
+      - "3307:3306"
+    volumes: 
+      - db_data:/var/lib/mysql 
+      - ./db-init:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data: {}

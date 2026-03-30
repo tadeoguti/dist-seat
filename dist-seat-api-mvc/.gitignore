@@ -1,0 +1,17 @@
+dist-backend/node_modules/
+dist-frontend/node_modules/
+
+dispositivos.txt
+
+.vscode/
+dist-backend/storage/dist/
+dist-backend/storage/Resultados/
+dist-backend/tests/
+
+.env
+bd-tables.sql
+Actividades pendientes API.md
+readme.md
+
+bdSQLServer.sql
+bdSQLServer.txt
