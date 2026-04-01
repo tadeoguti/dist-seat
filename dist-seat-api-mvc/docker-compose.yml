@@ -9,11 +9,23 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./dist-backend/.env
+      - ./dist-backend/.env.prod
     volumes:
       - ./dist-backend/storage:/app/storage
     depends_on:
       - db
+    
+  frontend:
+    build:
+      context: ./dist-frontend
+      dockerfile: Dockerfile
+    container_name: dist-frontend
+    ports:
+      - "8080:80"   # tu frontend estará en http://localhost:8080
+    env_file:
+      - ./dist-frontend/.env.prod
+    depends_on:
+      - backend
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -34,6 +46,7 @@ services:
     container_name: dist-db-initializer
     depends_on:
       - db
+    restart: "no"
     volumes:
       - ./db-init:/db-init
     environment:
@@ -41,7 +54,7 @@ services:
     command: >
       bash -c '
       echo "Esperando a que SQL Server inicie (20s)..."
-      sleep 20
+      sleep 25
       echo "Ejecutando script initSQL.sql..."
       /opt/mssql-tools18/bin/sqlcmd -S db -U SA -P "Root.12345" -C -i /db-init/initSQL.sql
       echo "Ejecución finalizada."

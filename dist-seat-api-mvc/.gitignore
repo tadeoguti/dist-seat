@@ -15,3 +15,9 @@ readme.md
 
 bdSQLServer.sql
 bdSQLServer.txt
+
+dist-backend/.env.dev
+dist-backend/.env.prod
+dist-frontend/.env.dev
+dist-frontend/.env.prod
+db-init/
